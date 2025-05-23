@@ -1,0 +1,121 @@
+{
+  "name": "mythbound-launcher",
+  "version": "1.0.0",
+  "description": "Official launcher for Mythbound RPG.",
+  "main": "main.js",
+  "homepage": "https://www.mythbound.dev/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tibia-oce/mythbound-launcher-public.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tibia-oce/mythbound-launcher-public/issues"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-linux": "electron-builder --linux",
+    "build-windows": "electron-builder --win",
+    "build-all": "electron-builder --linux --win"
+  },
+  "keywords": [
+    "mythbound",
+    "game",
+    "launcher",
+    "mmorpg",
+    "electron",
+    "gaming"
+  ],
+  "author": {
+    "name": "Jordan",
+    "email": "contact@mythbound.dev",
+    "url": "https://www.mythbound.dev/"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9",
+    "extract-zip": "^2.0.1",
+    "fs-extra": "^11.2.0",
+    "js-yaml": "^4.1.0",
+    "semver": "^7.7.1"
+  },
+  "build": {
+    "appId": "dev.mythbound.launcher",
+    "productName": "Mythbound Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://www.mythbound.dev/updates/"
+      }
+    ],
+    "extraMetadata": {
+      "updateFolder": "updates"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Game",
+      "synopsis": "Official launcher for Mythbound RPG.",
+      "description": "Launch and manage your Mythbound game installation with automatic updates and news feeds."
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "mythbound_logo.ico",
+      "publisherName": "Mythbound",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mythbound Launcher"
+    },
+    "files": [
+      "main.js",
+      "index.html",
+      "resources/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": "resources",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}
