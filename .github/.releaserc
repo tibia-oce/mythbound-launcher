@@ -1,0 +1,46 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "prerelease": false
+    }
+  ],
+  "tagFormat": "v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "writerOpts": {
+          "headerPartial": ""
+        }
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "artifacts/windows/mythbound-launcher-windows.zip",
+            "name": "mythbound-launcher-windows-v${version}.zip",
+            "label": "Windows Launcher"
+          },
+          {
+            "path": "artifacts/linux/mythbound-launcher-linux.tar.gz",
+            "name": "mythbound-launcher-linux-v${version}.tar.gz",
+            "label": "Linux Launcher"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}

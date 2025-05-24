@@ -1,0 +1,18 @@
+name: 🐛 Bug Report
+description: Report a bug for the project.
+assignees: ["jordanhoare"]
+labels: ["bug"]
+title: "bug: "
+body:
+  - type: textarea
+    attributes:
+      label: Describe the Bug
+      description: A clear description of what the bug is and how it manifests.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen.
+    validations:
+      required: true

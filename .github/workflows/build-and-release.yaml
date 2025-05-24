@@ -1,0 +1,133 @@
+name: Build & Release Mythbound Launcher
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-windows:
+    name: Build Windows Launcher
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          cd mythbound-launcher
+          npm ci
+
+      - name: Build Windows Launcher
+        run: |
+          cd mythbound-launcher
+          npm run build-windows
+
+      - name: Package Windows Artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts/windows -Force
+          Copy-Item -Path "mythbound-launcher/dist/*.exe" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path "mythbound-launcher/dist/win-unpacked" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
+          Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/mythbound-launcher-windows.zip"
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-windows
+          path: artifacts/mythbound-launcher-windows.zip
+
+  build-linux:
+    name: Build Linux Launcher
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nodejs npm build-essential fuse libfuse2 libnss3-dev \
+            libatk-bridge2.0-dev libdrm2 libxkbcommon-dev libxcomposite-dev \
+            libxdamage-dev libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+
+      - name: Install dependencies
+        run: |
+          cd mythbound-launcher
+          npm ci
+
+      - name: Build Linux Launcher
+        run: |
+          cd mythbound-launcher
+          npm run build-linux
+
+      - name: Package Linux Artifacts
+        run: |
+          mkdir -p artifacts/linux
+          cp mythbound-launcher/dist/*.AppImage artifacts/linux/ 2>/dev/null || true
+          cp mythbound-launcher/dist/*.deb artifacts/linux/ 2>/dev/null || true
+          cp mythbound-launcher/dist/latest-linux.yml artifacts/linux/ 2>/dev/null || true
+          tar czf artifacts/mythbound-launcher-linux.tar.gz -C artifacts/linux .
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-linux
+          path: artifacts/mythbound-launcher-linux.tar.gz
+
+  release:
+    name: Semantic Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Copy Release Config to Root
+        run: |
+          cp .github/.releaserc ./
+
+      - name: Install Semantic Release
+        run: npm install --no-save semantic-release @semantic-release/github @semantic-release/git @semantic-release/release-notes-generator @semantic-release/commit-analyzer
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-windows
+          path: artifacts/windows
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-linux
+          path: artifacts/linux
+
+      - name: Run Semantic Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release --no-ci
