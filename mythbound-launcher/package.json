@@ -14,9 +14,9 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "build-linux": "electron-builder --linux",
-    "build-windows": "electron-builder --win",
-    "build-all": "electron-builder --linux --win"
+    "build-linux": "electron-builder --linux --publish=never",
+    "build-windows": "electron-builder --win --publish=never",
+    "build-all": "electron-builder --linux --win --publish=never"
   },
   "keywords": [
     "mythbound",

@@ -1,4 +1,4 @@
-name: Build & Release Mythbound Launcher
+name: Build & Release
 
 on:
   push:
@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GHCR_TOKEN_PRIVATE }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
