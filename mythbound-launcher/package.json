@@ -90,7 +90,6 @@
     },
     "nsis": {
       "oneClick": true,
-      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Mythbound Launcher"
