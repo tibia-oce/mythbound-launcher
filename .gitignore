@@ -234,3 +234,4 @@ dist-ssr/
 
 # Turborepo
 .turbo/
+squashfs-root/

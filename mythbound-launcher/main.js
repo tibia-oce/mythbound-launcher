@@ -26,7 +26,7 @@ const resourcesPath = path.join(__dirname, "resources");
 console.log(`Resources Path (dev): ${resourcesPath}`);
 
 const userDataDir = app.getPath("userData");
-const persistentBaseDir = path.join(userDataDir, "opengamescommunity");
+const persistentBaseDir = path.join(userDataDir, "mythbound");
 fs.ensureDirSync(persistentBaseDir);
 
 // const clientExePath = path.join(resourceRoot, 'resources', 'Exodus_Client.exe'); // If exe is inside folder resources where luncher is located (NOT RECOMMENDED, use instead the method to trigger download after install launcher, instead of installing launcher and game first time )
@@ -230,7 +230,7 @@ function downloadAndUpdateResource(fileUrl, targetDir, ipcEvent, callback) {
 ipcMain.on("update-resource", (event, resource) => {
   console.log(`Received IPC request to update resource: ${resource}`);
 
-  const baseUrl = `https://YOUR_URL/${resource}/`;
+  const baseUrl = `https://github.com/tibia-oce/mythbound-client-public/releases/latest/download/`;
   const manifestUrl = baseUrl + "latest.yml";
   console.log(`Manifest URL for resource "${resource}": ${manifestUrl}`);
 
@@ -324,7 +324,7 @@ ipcMain.on("update-resource", (event, resource) => {
 // Check-resource-update
 // -----------------------------------------------------------------------------
 ipcMain.handle("check-resource-update", async (event, resource) => {
-  const baseUrl = `https://YOUR_URL/${resource}/`;
+  const baseUrl = `https://github.com/tibia-oce/mythbound-client-public/releases/latest/download/`;
   const manifestUrl = baseUrl + "latest.yml";
 
   const localManifestPath = path.join(

@@ -46,15 +46,12 @@
   "build": {
     "appId": "dev.mythbound.launcher",
     "productName": "Mythbound Launcher",
+    "asarUnpack": [
+      "resources/**/*"
+    ],
     "directories": {
       "output": "dist"
     },
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "https://www.mythbound.dev/updates/"
-      }
-    ],
     "extraMetadata": {
       "updateFolder": "updates"
     },
@@ -107,15 +104,6 @@
       "main.js",
       "index.html",
       "resources/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "resources",
-        "to": "resources",
-        "filter": [
-          "**/*"
-        ]
-      }
     ]
   }
 }
