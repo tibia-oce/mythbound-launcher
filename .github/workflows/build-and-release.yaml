@@ -34,16 +34,34 @@ jobs:
       - name: Package Windows Artifacts
         shell: pwsh
         run: |
+          # Create artifacts directory
           New-Item -ItemType Directory -Path artifacts/windows -Force
-          Copy-Item -Path "mythbound-launcher/dist/*.exe" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
+
+          # Copy individual installer files
+          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+
+          # Create full package with everything
           Copy-Item -Path "mythbound-launcher/dist/win-unpacked" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
           Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/mythbound-launcher-windows.zip"
 
-      - name: Upload Windows Artifact
+      - name: Upload Windows Full Package
         uses: actions/upload-artifact@v4
         with:
-          name: mythbound-launcher-windows
+          name: mythbound-launcher-windows-full
           path: artifacts/mythbound-launcher-windows.zip
+
+      - name: Upload Windows Setup Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-windows-setup
+          path: mythbound-launcher/dist/Mythbound Launcher Setup*.exe
+
+      - name: Upload Windows Portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-windows-portable
+          path: mythbound-launcher/dist/Mythbound Launcher *.exe
 
   build-linux:
     name: Build Linux Launcher
@@ -81,11 +99,23 @@ jobs:
           cp mythbound-launcher/dist/latest-linux.yml artifacts/linux/ 2>/dev/null || true
           tar czf artifacts/mythbound-launcher-linux.tar.gz -C artifacts/linux .
 
-      - name: Upload Linux Artifact
+      - name: Upload Linux Full Package
         uses: actions/upload-artifact@v4
         with:
-          name: mythbound-launcher-linux
+          name: mythbound-launcher-linux-full
           path: artifacts/mythbound-launcher-linux.tar.gz
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-linux-appimage
+          path: mythbound-launcher/dist/*.AppImage
+
+      - name: Upload Linux Deb Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-linux-deb
+          path: mythbound-launcher/dist/*.deb
 
   release:
     name: Semantic Release
@@ -118,14 +148,38 @@ jobs:
       - name: Download Windows Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: mythbound-launcher-windows
+          name: mythbound-launcher-windows-full
           path: artifacts/windows
+
+      - name: Download Windows Setup Installer
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-windows-setup
+          path: artifacts/windows-setup
+
+      - name: Download Windows Portable
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-windows-portable
+          path: artifacts/windows-portable
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: mythbound-launcher-linux
+          name: mythbound-launcher-linux-full
           path: artifacts/linux
+
+      - name: Download Linux AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-linux-appimage
+          path: artifacts/linux-appimage
+
+      - name: Download Linux Deb Package
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-linux-deb
+          path: artifacts/linux-deb
 
       - name: Run Semantic Release
         env:
