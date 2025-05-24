@@ -4,6 +4,7 @@
 APP_NAME = mythbound-launcher
 BUILD_DIR = dist
 SRC_DIR = mythbound-launcher
+SQUASH_DIR = squashfs-root
 NODE_MODULES = $(SRC_DIR)/node_modules
 PACKAGE_JSON = $(SRC_DIR)/package.json
 
@@ -38,6 +39,8 @@ clean:
 	rm -rf $(SRC_DIR)/$(BUILD_DIR)
 	rm -rf $(SRC_DIR)/node_modules/.cache
 	rm -rf $(BUILD_DIR)
+	rm -rf $(SQUASH_DIR)
+
 
 clean-all: clean
 	@echo "Removing node_modules..."

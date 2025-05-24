@@ -138,6 +138,8 @@ dist_electron/
 *.yml
 *.yaml
 latest*.yml
+!.github/*/*.yml
+!.github/*/*.yaml
 
 # Platform-specific build outputs
 *.exe

@@ -71,6 +71,7 @@
         }
       ],
       "category": "Game",
+      "icon": "build/icons",
       "synopsis": "Official launcher for Mythbound RPG.",
       "description": "Launch and manage your Mythbound game installation with automatic updates and news feeds."
     },
