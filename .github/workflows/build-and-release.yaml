@@ -181,6 +181,25 @@ jobs:
           name: mythbound-launcher-linux-deb
           path: artifacts/linux-deb
 
+      - name: Organize Artifacts for Release
+        run: |
+          # Create organized structure
+          mkdir -p artifacts/release
+
+          # Copy and rename Windows files
+          cp artifacts/windows/mythbound-launcher-windows.zip artifacts/release/
+          cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe 2>/dev/null || true
+          cp artifacts/windows-portable/Mythbound\ Launcher\ *.exe artifacts/release/mythbound-launcher-portable.exe 2>/dev/null || true
+
+          # Copy and rename Linux files  
+          cp artifacts/linux/mythbound-launcher-linux.tar.gz artifacts/release/
+          cp artifacts/linux-appimage/*.AppImage artifacts/release/mythbound-launcher.AppImage 2>/dev/null || true
+          cp artifacts/linux-deb/*.deb artifacts/release/mythbound-launcher.deb 2>/dev/null || true
+
+          # List final artifacts
+          echo "Final artifacts for release:"
+          ls -la artifacts/release/
+
       - name: Run Semantic Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

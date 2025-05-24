@@ -21,32 +21,32 @@
       {
         "assets": [
           {
-            "path": "artifacts/windows/mythbound-launcher-windows.zip",
+            "path": "artifacts/release/mythbound-launcher-windows.zip",
             "name": "mythbound-launcher-windows-v${nextRelease.version}.zip",
             "label": "Windows Launcher (Full Package)"
           },
           {
-            "path": "artifacts/mythbound-launcher-setup.exe",
+            "path": "artifacts/release/mythbound-launcher-setup.exe",
             "name": "mythbound-launcher-setup-v${nextRelease.version}.exe",
             "label": "Windows Installer"
           },
           {
-            "path": "artifacts/mythbound-launcher-portable.exe",
+            "path": "artifacts/release/mythbound-launcher-portable.exe", 
             "name": "mythbound-launcher-portable-v${nextRelease.version}.exe",
             "label": "Windows Portable"
           },
           {
-            "path": "artifacts/linux/mythbound-launcher-linux.tar.gz",
+            "path": "artifacts/release/mythbound-launcher-linux.tar.gz",
             "name": "mythbound-launcher-linux-v${nextRelease.version}.tar.gz",
             "label": "Linux Launcher (Full Package)"
           },
           {
-            "path": "artifacts/mythbound-launcher.AppImage",
+            "path": "artifacts/release/mythbound-launcher.AppImage",
             "name": "mythbound-launcher-v${nextRelease.version}.AppImage",
             "label": "Linux AppImage"
           },
           {
-            "path": "artifacts/mythbound-launcher.deb",
+            "path": "artifacts/release/mythbound-launcher.deb",
             "name": "mythbound-launcher-v${nextRelease.version}.deb",
             "label": "Linux Deb Package"
           }
