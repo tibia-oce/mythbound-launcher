@@ -281,7 +281,14 @@ ipcMain.on("update-resource", (event, resource) => {
         `New version ${remoteVersion} available. Downloading update...`
       );
 
-      const fileUrl = baseUrl + manifest.zipFileName;
+      const zipFileName = manifest.zipFileName || manifest.path;
+      if (!zipFileName) {
+        console.error("No zipFileName or path found in manifest.");
+        event.sender.send("update-status", "Missing zip filename in manifest.");
+        return;
+      }
+      const fileUrl = baseUrl + zipFileName;
+
       console.log(`Downloading update from: ${fileUrl}`);
       const targetDir = path.join(persistentBaseDir, resource);
       fs.ensureDirSync(targetDir);
