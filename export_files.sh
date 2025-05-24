@@ -54,6 +54,7 @@ get_file_size() {
 # Build find command with exclusions - focusing on code only
 FIND_CMD='find . -type f'
 FIND_CMD="$FIND_CMD ! -path '*/.git/*'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/*'"
 FIND_CMD="$FIND_CMD ! -name '.gitignore'"
 FIND_CMD="$FIND_CMD ! -path '*/node_modules/*'"
 FIND_CMD="$FIND_CMD ! -name 'package-lock.json'"
@@ -103,6 +104,8 @@ FIND_CMD="$FIND_CMD ! -name '*.pdf'"
 FIND_CMD="$FIND_CMD ! -name '*.docx'"
 FIND_CMD="$FIND_CMD ! -name '*.doc'"
 FIND_CMD="$FIND_CMD ! -name 'README.txt'"
+FIND_CMD="$FIND_CMD ! -name 'README.md'"
+FIND_CMD="$FIND_CMD ! -name 'makefile'"
 FIND_CMD="$FIND_CMD ! -name 'export_files.sh'"
 FIND_CMD="$FIND_CMD ! -name '*.sh'"
 FIND_CMD="$FIND_CMD ! -name '$OUTPUT_FILE'"

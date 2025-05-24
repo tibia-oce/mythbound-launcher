@@ -29,12 +29,12 @@ const userDataDir = app.getPath("userData");
 const persistentBaseDir = path.join(userDataDir, "mythbound");
 fs.ensureDirSync(persistentBaseDir);
 
-// const clientExePath = path.join(resourceRoot, 'resources', 'Exodus_Client.exe'); // If exe is inside folder resources where luncher is located (NOT RECOMMENDED, use instead the method to trigger download after install launcher, instead of installing launcher and game first time )
+// const clientExePath = path.join(resourceRoot, 'resources', 'otclient.exe'); // If exe is inside folder resources where luncher is located (NOT RECOMMENDED, use instead the method to trigger download after install launcher, instead of installing launcher and game first time )
 const clientExePath = path.join(
   persistentBaseDir,
-  "resource1",
-  "Exodus_Client.exe"
-); // If exe is inside folder resource1 (Folder .zip downloaded from host, so the game folder) if is inside of resource1 but inside folder data will be 'resource1', 'data', 'Exodus_Client.exe'
+  "mythbound-windows",
+  "otclient.exe"
+);
 console.log(`Client Executable (resolved): ${clientExePath}`);
 
 // -----------------------------------------------------------------------------

@@ -229,15 +229,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 			</li>
 		</ul>
 		<div class="launch-buttons">
-				<div class="resource-update" id="resourceUpdate_resource1">
-				  <div class="progress-container" id="progressContainer_resource1">
-					<div class="progress-bar" id="progressBar_resource1"></div>
+				<div class="resource-update" id="resourceUpdate_mythbound-windows">
+				  <div class="progress-container" id="progressContainer_mythbound-windows">
+					<div class="progress-bar" id="progressBar_mythbound-windows"></div>
 				</div>
 				<p id="versionDisplay" style="margin-top: 20px; text-align: center; color: #fff;"></p>
 		</div>
 		<button class="action-btn" id="launchButton" style="width:150px">Play</button>
-		<button class="action-btn" id="updateButton_resource1" style="width:150px" onclick="handleUpdate('resource1')">Update</button>
-		<button class="action-btn" id="optionsBtn" style="width:150px" onclick="openResourceFolder('resource1')">⚙ Options</button>
+		<button class="action-btn" id="updateButton_mythbound-windows" style="width:150px" onclick="handleUpdate('mythbound-windows')">Update</button>
+		<button class="action-btn" id="optionsBtn" style="width:150px" onclick="openResourceFolder('mythbound-windows')">⚙ Options</button>
 		</div>
 		</nav>
         <div class="tab-views">
@@ -525,7 +525,7 @@ externalHrefElements.forEach(el => {
     const match = progressMessage.match(/(\d+)%/);
     if (match) {
       const percent = parseInt(match[1]);
-      const progressBar = document.getElementById("progressBar_resource1");
+      const progressBar = document.getElementById("progressBar_mythbound-windows");
       if (progressBar) {
         progressBar.style.width = percent + '%';
       }
@@ -634,7 +634,7 @@ function handleUpdate(resource) {
 	  
 	  ipcRenderer.on('game-started', () => {
   // Disable the Update button while the game is running.
-		const updateButton = document.getElementById("updateButton_resource1");
+		const updateButton = document.getElementById("updateButton_mythbound-windows");
 		if (updateButton) {
 			updateButton.disabled = true;
 			updateButton.style.opacity = "0.5"; 
@@ -648,7 +648,7 @@ function handleUpdate(resource) {
     launchButton.style.opacity = "";
   }
   
-  const updateButton = document.getElementById("updateButton_resource1");
+  const updateButton = document.getElementById("updateButton_mythbound-windows");
   if (updateButton) {
     // If no update is needed, ensure the button remains in the "up-to-date" state.
     updateButton.disabled = true;
@@ -656,7 +656,7 @@ function handleUpdate(resource) {
     updateButton.innerText = "Up to Date";
   }
   
-  const progressContainer = document.getElementById("progressContainer_resource1");
+  const progressContainer = document.getElementById("progressContainer_mythbound-windows");
   if (progressContainer) {
     progressContainer.style.display = "none";
   }
@@ -694,7 +694,7 @@ function handleUpdate(resource) {
 }
 
 // Check for each resource on startup
-const resourcesToCheck = ['resource1'];
+const resourcesToCheck = ['mythbound-windows'];
 resourcesToCheck.forEach(resource => {
   checkResourceStatus(resource);
 });
