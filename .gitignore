@@ -237,3 +237,5 @@ dist-ssr/
 # Turborepo
 .turbo/
 squashfs-root/
+
+CHANGELOG.md
