@@ -31,19 +31,30 @@ jobs:
           cd mythbound-launcher
           npm run build-windows
 
+      - name: Debug Windows Build Output
+        shell: pwsh
+        run: |
+          echo "Contents of dist directory:"
+          Get-ChildItem -Path "mythbound-launcher/dist" -Recurse | Format-Table Name, Length, LastWriteTime
+
       - name: Package Windows Artifacts
         shell: pwsh
         run: |
           # Create artifacts directory
           New-Item -ItemType Directory -Path artifacts/windows -Force
 
-          # Copy individual installer files
+          # Copy setup installer (NSIS)
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
-          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+
+          # Copy portable executable (should have different naming pattern)
+          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher *.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue -Exclude "*Setup*"
 
           # Create full package with everything
           Copy-Item -Path "mythbound-launcher/dist/win-unpacked" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
           Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/mythbound-launcher-windows.zip"
+
+          echo "Contents of artifacts/windows:"
+          Get-ChildItem -Path "artifacts/windows" | Format-Table Name, Length
 
       - name: Upload Windows Full Package
         uses: actions/upload-artifact@v4
@@ -62,6 +73,7 @@ jobs:
         with:
           name: mythbound-launcher-windows-portable
           path: mythbound-launcher/dist/Mythbound Launcher *.exe
+          if-no-files-found: warn
 
   build-linux:
     name: Build Linux Launcher
@@ -91,6 +103,11 @@ jobs:
           cd mythbound-launcher
           npm run build-linux
 
+      - name: Debug Linux Build Output
+        run: |
+          echo "Contents of dist directory:"
+          ls -la mythbound-launcher/dist/
+
       - name: Package Linux Artifacts
         run: |
           mkdir -p artifacts/linux
@@ -98,6 +115,9 @@ jobs:
           cp mythbound-launcher/dist/*.deb artifacts/linux/ 2>/dev/null || true
           cp mythbound-launcher/dist/latest-linux.yml artifacts/linux/ 2>/dev/null || true
           tar czf artifacts/mythbound-launcher-linux.tar.gz -C artifacts/linux .
+
+          echo "Contents of artifacts/linux:"
+          ls -la artifacts/linux/
 
       - name: Upload Linux Full Package
         uses: actions/upload-artifact@v4
@@ -162,6 +182,7 @@ jobs:
         with:
           name: mythbound-launcher-windows-portable
           path: artifacts/windows-portable
+          continue-on-error: true
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
@@ -181,6 +202,15 @@ jobs:
           name: mythbound-launcher-linux-deb
           path: artifacts/linux-deb
 
+      - name: Debug Downloaded Artifacts
+        run: |
+          echo "=== Windows Setup ==="
+          ls -la artifacts/windows-setup/ || echo "No windows setup files"
+          echo "=== Windows Portable ==="
+          ls -la artifacts/windows-portable/ || echo "No windows portable files"
+          echo "=== Linux AppImage ==="
+          ls -la artifacts/linux-appimage/ || echo "No linux appimage files"
+
       - name: Organize Artifacts for Release
         run: |
           # Create organized structure
@@ -188,13 +218,36 @@ jobs:
 
           # Copy and rename Windows files
           cp artifacts/windows/mythbound-launcher-windows.zip artifacts/release/
-          cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe 2>/dev/null || true
-          cp artifacts/windows-portable/Mythbound\ Launcher\ *.exe artifacts/release/mythbound-launcher-portable.exe 2>/dev/null || true
+
+          # Handle setup installer
+          if ls artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe 1> /dev/null 2>&1; then
+            cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe
+          else
+            echo "WARNING: No Windows setup installer found"
+          fi
+
+          # Handle portable executable - try different patterns
+          if ls artifacts/windows-portable/Mythbound\ Launcher\ *.exe 1> /dev/null 2>&1; then
+            # Exclude setup files and copy the first portable exe found
+            find artifacts/windows-portable/ -name "Mythbound Launcher *.exe" ! -name "*Setup*" -exec cp {} artifacts/release/mythbound-launcher-portable.exe \; -quit
+          else
+            echo "WARNING: No Windows portable executable found"
+          fi
 
           # Copy and rename Linux files  
           cp artifacts/linux/mythbound-launcher-linux.tar.gz artifacts/release/
-          cp artifacts/linux-appimage/*.AppImage artifacts/release/mythbound-launcher.AppImage 2>/dev/null || true
-          cp artifacts/linux-deb/*.deb artifacts/release/mythbound-launcher.deb 2>/dev/null || true
+
+          if ls artifacts/linux-appimage/*.AppImage 1> /dev/null 2>&1; then
+            cp artifacts/linux-appimage/*.AppImage artifacts/release/mythbound-launcher.AppImage
+          else
+            echo "WARNING: No Linux AppImage found"
+          fi
+
+          if ls artifacts/linux-deb/*.deb 1> /dev/null 2>&1; then
+            cp artifacts/linux-deb/*.deb artifacts/release/mythbound-launcher.deb
+          else
+            echo "WARNING: No Linux deb package found"
+          fi
 
           # List final artifacts
           echo "Final artifacts for release:"
@@ -243,10 +296,24 @@ jobs:
           echo "Downloaded files:"
           ls -la
 
+          echo "Looking for specific files:"
+          echo "Setup files:"
+          ls -la *setup* || echo "No setup files found"
+          echo "Portable files:"
+          ls -la *portable* || echo "No portable files found"
+          echo "All .exe files:"
+          ls -la *.exe || echo "No .exe files found"
+
       - name: Generate electron-updater manifests
         env:
           VERSION: ${{ steps.release_info.outputs.version }}
         run: |
+          # Check if required files exist
+          if [ ! -f "mythbound-launcher-setup.exe" ]; then
+            echo "ERROR: mythbound-launcher-setup.exe not found!"
+            exit 1
+          fi
+
           # Generate latest.yml for Windows
           cat > latest.yml << EOF
           version: $VERSION
@@ -256,11 +323,12 @@ jobs:
               size: $(stat -c%s mythbound-launcher-setup.exe)
           path: mythbound-launcher-setup.exe
           sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
-          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+          releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
           EOF
 
-          # Generate latest-linux.yml for Linux
-          cat > latest-linux.yml << EOF
+          # Generate latest-linux.yml for Linux (if AppImage exists)
+          if [ -f "mythbound-launcher.AppImage" ]; then
+            cat > latest-linux.yml << EOF
           version: $VERSION
           files:
             - url: mythbound-launcher.AppImage
@@ -268,8 +336,21 @@ jobs:
               size: $(stat -c%s mythbound-launcher.AppImage)
           path: mythbound-launcher.AppImage
           sha512: $(sha512sum mythbound-launcher.AppImage | cut -d' ' -f1)
-          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+          releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
           EOF
+          else
+            echo "WARNING: mythbound-launcher.AppImage not found, skipping Linux manifest"
+          fi
+
+          echo "Generated manifests:"
+          if [ -f "latest.yml" ]; then
+            echo "=== Windows manifest ==="
+            cat latest.yml
+          fi
+          if [ -f "latest-linux.yml" ]; then
+            echo "=== Linux manifest ==="
+            cat latest-linux.yml
+          fi
 
       - name: Create release in public repository
         uses: softprops/action-gh-release@v2
@@ -307,3 +388,4 @@ jobs:
           token: ${{ secrets.GHCR_TOKEN_PRIVATE }}
           draft: false
           prerelease: false
+          fail_on_unmatched_files: false
