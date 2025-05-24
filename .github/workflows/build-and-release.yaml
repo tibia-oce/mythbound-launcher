@@ -204,3 +204,106 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release --no-ci
+
+  publish-to-public:
+    name: Publish to Public Repository
+    needs: [release]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GHCR_TOKEN_PRIVATE }}
+
+      - name: Get latest release info
+        id: release_info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the latest release from this repository
+          RELEASE_DATA=$(gh release view --repo ${{ github.repository }} --json tagName,name,body,assets)
+          TAG_NAME=$(echo "$RELEASE_DATA" | jq -r '.tagName')
+          RELEASE_NAME=$(echo "$RELEASE_DATA" | jq -r '.name')
+
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
+          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release_info.outputs.tag_name }}
+        run: |
+          # Download all assets from the release
+          gh release download $TAG --repo ${{ github.repository }}
+
+          echo "Downloaded files:"
+          ls -la
+
+      - name: Generate electron-updater manifests
+        env:
+          VERSION: ${{ steps.release_info.outputs.version }}
+        run: |
+          # Generate latest.yml for Windows
+          cat > latest.yml << EOF
+          version: $VERSION
+          files:
+            - url: mythbound-launcher-setup.exe
+              sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
+              size: $(stat -c%s mythbound-launcher-setup.exe)
+          path: mythbound-launcher-setup.exe
+          sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
+          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+          EOF
+
+          # Generate latest-linux.yml for Linux
+          cat > latest-linux.yml << EOF
+          version: $VERSION
+          files:
+            - url: mythbound-launcher.AppImage
+              sha512: $(sha512sum mythbound-launcher.AppImage | cut -d' ' -f1)
+              size: $(stat -c%s mythbound-launcher.AppImage)
+          path: mythbound-launcher.AppImage
+          sha512: $(sha512sum mythbound-launcher.AppImage | cut -d' ' -f1)
+          releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
+          EOF
+
+      - name: Create release in public repository
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          name: ${{ steps.release_info.outputs.release_name }}
+          body: |
+            ## ${{ steps.release_info.outputs.release_name }}
+
+            ### Downloads
+
+            **Windows:**
+            - [Setup Installer](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-setup.exe) (Recommended)
+            - [Portable Version](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-portable.exe)
+
+            **Linux:**
+            - [AppImage](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.AppImage) (Recommended)
+            - [Debian Package](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.deb)
+
+            ### Installation
+            - **Windows:** Download and run the setup installer
+            - **Linux:** Download AppImage, make executable (`chmod +x`), and run
+
+            For support, visit our [Discord](https://discord.gg/TT2ebFwEyE).
+          files: |
+            mythbound-launcher-setup.exe
+            mythbound-launcher-portable.exe
+            mythbound-launcher.AppImage
+            mythbound-launcher.deb
+            mythbound-launcher-windows.zip
+            mythbound-launcher-linux.tar.gz
+            latest.yml
+            latest-linux.yml
+          repository: tibia-oce/mythbound-launcher-public
+          token: ${{ secrets.GHCR_TOKEN_PRIVATE }}
+          draft: false
+          prerelease: false

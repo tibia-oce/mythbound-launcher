@@ -149,6 +149,13 @@ app.on("ready", () => {
   autoUpdater.baseCachePath = updatesDir;
   console.log("Custom updates directory set to:", updatesDir);
 
+  autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "tibia-oce",
+    repo: "mythbound-launcher-public",
+    private: false,
+  });
+
   autoUpdater.checkForUpdatesAndNotify();
 });
 
