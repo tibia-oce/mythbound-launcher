@@ -1,6 +1,6 @@
 {
   "name": "mythbound-launcher",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Official launcher for Mythbound RPG.",
   "main": "main.js",
   "homepage": "https://www.mythbound.dev/",
@@ -18,14 +18,6 @@
     "build-windows": "electron-builder --win nsis --publish=always",
     "build-all": "electron-builder --linux --win nsis --publish=always"
   },
-  "keywords": [
-    "mythbound",
-    "game",
-    "launcher",
-    "mmorpg",
-    "electron",
-    "gaming"
-  ],
   "author": {
     "name": "Jordan",
     "email": "contact@mythbound.dev",
@@ -46,7 +38,7 @@
   "build": {
     "appId": "dev.mythbound.launcher",
     "productName": "Mythbound Launcher",
-    "artifactName": "${productName} Setup ${version}.${ext}",
+    "artifactName": "${productName} Installer ${version}.${ext}",
     "asarUnpack": [
       "resources/**/*"
     ],
@@ -108,9 +100,7 @@
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
       "installerIcon": "mythbound_logo.ico",
-      "uninstallerIcon": "mythbound_logo.ico",
-      "differentialPackage": true,
-      "artifactName": "${productName} Setup ${version}.${ext}"
+      "uninstallerIcon": "mythbound_logo.ico"
     },
     "files": [
       "main.js",
