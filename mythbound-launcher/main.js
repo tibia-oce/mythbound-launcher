@@ -19,7 +19,6 @@ let gameProcess = null;
 // -----------------------------------------------------------------------------
 // Set up paths and variables
 // -----------------------------------------------------------------------------
-
 const resourceRoot =
   process.env.NODE_ENV === "development" ? __dirname : process.resourcesPath;
 const resourcesPath = path.join(__dirname, "resources");
@@ -29,7 +28,6 @@ const userDataDir = app.getPath("userData");
 const persistentBaseDir = path.join(userDataDir, "mythbound");
 fs.ensureDirSync(persistentBaseDir);
 
-// const clientExePath = path.join(resourceRoot, 'resources', 'otclient.exe'); // If exe is inside folder resources where luncher is located (NOT RECOMMENDED, use instead the method to trigger download after install launcher, instead of installing launcher and game first time )
 const clientExePath = path.join(
   persistentBaseDir,
   "mythbound-windows",
@@ -46,18 +44,40 @@ function launchClient() {
     return;
   }
 
+  // Check if client exists before launching
+  if (!fs.existsSync(clientExePath)) {
+    console.error("Client executable not found:", clientExePath);
+    dialog.showErrorBox(
+      "Game Not Found",
+      "The game client is not installed. Please update first."
+    );
+    return;
+  }
+
   gameProcess = spawn(`"${clientExePath}"`, [], {
     shell: true,
     detached: true,
   });
   console.log("Game launched.");
 
-  mainWindow.webContents.send("game-started");
+  if (mainWindow) {
+    mainWindow.webContents.send("game-started");
+  }
 
   gameProcess.on("exit", (code) => {
     console.log(`Game exited with code ${code}`);
     gameProcess = null;
-    mainWindow.webContents.send("game-stopped");
+    if (mainWindow) {
+      mainWindow.webContents.send("game-stopped");
+    }
+  });
+
+  gameProcess.on("error", (err) => {
+    console.error("Error launching game:", err);
+    gameProcess = null;
+    if (mainWindow) {
+      mainWindow.webContents.send("game-stopped");
+    }
   });
 }
 
@@ -69,6 +89,11 @@ function checkRemoteVersion(manifestUrl, callback) {
   let data = "";
   https
     .get(manifestUrl, (res) => {
+      if (res.statusCode !== 200) {
+        console.error(`HTTP ${res.statusCode} when fetching manifest`);
+        return callback(new Error(`HTTP ${res.statusCode}`));
+      }
+
       res.on("data", (chunk) => {
         data += chunk;
       });
@@ -91,27 +116,6 @@ function checkRemoteVersion(manifestUrl, callback) {
 }
 
 // -----------------------------------------------------------------------------
-// Patch httpExecutor.getTempFileName for electron-updater (Sanitized lines)
-// -----------------------------------------------------------------------------
-try {
-  const httpExecutor = require("builder-util-runtime/out/httpExecutor");
-  const originalGetTempFileName = httpExecutor.getTempFileName;
-  httpExecutor.getTempFileName = (url) => {
-    console.log("Original URL for temp file:", url);
-    const sanitized = url.replace(/[:\/\\]+/g, "_");
-    console.log("Sanitized filename:", sanitized);
-    const cachePath =
-      typeof autoUpdater !== "undefined" && autoUpdater.baseCachePath
-        ? autoUpdater.baseCachePath
-        : app.getPath("userData");
-    return path.join(cachePath, "temp-" + sanitized);
-  };
-  console.log("Patched httpExecutor.getTempFileName successfully.");
-} catch (e) {
-  console.error("Failed to patch getTempFileName:", e);
-}
-
-// -----------------------------------------------------------------------------
 // Setup updater directory
 // -----------------------------------------------------------------------------
 function ensureUpdaterDirs() {
@@ -120,7 +124,7 @@ function ensureUpdaterDirs() {
 }
 
 // -----------------------------------------------------------------------------
-// Main Windows Luncher
+// Main Window Launcher
 // -----------------------------------------------------------------------------
 let mainWindow;
 function createWindow() {
@@ -149,14 +153,16 @@ app.on("ready", () => {
   autoUpdater.baseCachePath = updatesDir;
   console.log("Custom updates directory set to:", updatesDir);
 
-  // autoUpdater.setFeedURL({
-  //   provider: "github",
-  //   owner: "tibia-oce",
-  //   repo: "mythbound-client-public",
-  //   private: false,
-  // });
+  // Configure launcher auto-updater with CORRECT repository
+  autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "tibia-oce",
+    repo: "mythbound-launcher-public", // ✅ Correct launcher repo
+    private: false,
+  });
 
-  // autoUpdater.checkForUpdatesAndNotify();
+  // Check for launcher updates
+  autoUpdater.checkForUpdatesAndNotify();
 });
 
 app.on("window-all-closed", () => {
@@ -168,7 +174,7 @@ app.on("activate", () => {
 });
 
 // -----------------------------------------------------------------------------
-// Donwload and Update
+// Download and Update Client
 // -----------------------------------------------------------------------------
 function downloadAndUpdateResource(fileUrl, targetDir, ipcEvent, callback) {
   console.log("Starting download from:", fileUrl);
@@ -178,67 +184,91 @@ function downloadAndUpdateResource(fileUrl, targetDir, ipcEvent, callback) {
 
   const startTime = Date.now();
 
-  https
-    .get(fileUrl, (response) => {
-      const totalBytes = parseInt(response.headers["content-length"], 10);
-      let downloadedBytes = 0;
+  function handleRequest(url) {
+    https
+      .get(url, (response) => {
+        // Handle redirects (302, 301, etc.)
+        if (
+          response.statusCode >= 300 &&
+          response.statusCode < 400 &&
+          response.headers.location
+        ) {
+          console.log(
+            `Redirect ${response.statusCode} to: ${response.headers.location}`
+          );
+          response.destroy(); // Clean up the current response
+          return handleRequest(response.headers.location);
+        }
 
-      response.on("data", (chunk) => {
-        downloadedBytes += chunk.length;
-        const elapsedTime = (Date.now() - startTime) / 1000; // seconds
-        const speed = downloadedBytes / (1024 * 1024 * elapsedTime); // MB/s
-        const currentMB = (downloadedBytes / (1024 * 1024)).toFixed(2);
-        const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
-        const percent = Math.round((downloadedBytes / totalBytes) * 100);
+        if (response.statusCode !== 200) {
+          console.error(`HTTP ${response.statusCode} when downloading file`);
+          return callback(new Error(`HTTP ${response.statusCode}`));
+        }
 
-        const progressMessage = `Speed: ${speed.toFixed(
-          2
-        )} MB/s | ${currentMB} MB / ${totalMB} MB | ${percent}%`;
-        ipcEvent.sender.send("download-progress", progressMessage);
-      });
+        const totalBytes = parseInt(response.headers["content-length"], 10);
+        let downloadedBytes = 0;
 
-      response.pipe(fileStream);
+        response.on("data", (chunk) => {
+          downloadedBytes += chunk.length;
+          const elapsedTime = (Date.now() - startTime) / 1000; // seconds
+          const speed = downloadedBytes / (1024 * 1024 * elapsedTime); // MB/s
+          const currentMB = (downloadedBytes / (1024 * 1024)).toFixed(2);
+          const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
+          const percent = Math.round((downloadedBytes / totalBytes) * 100);
 
-      fileStream.on("finish", () => {
-        fileStream.close(() => {
-          console.log("Download finished, file saved as:", filePath);
-
-          ipcEvent.sender.send("download-progress", "Unpacking...");
-          if (path.extname(fileName) === ".zip") {
-            console.log("File is a ZIP archive, starting extraction...");
-            extract(filePath, { dir: targetDir })
-              .then(() => {
-                console.log("Extraction complete.");
-                fs.unlink(filePath, (err) => {
-                  if (err) console.error("Error deleting zip file:", err);
-                  else console.log("Zip file deleted after extraction.");
-                  callback(null);
-                });
-              })
-              .catch((err) => {
-                console.error("Error during extraction:", err);
-                callback(err);
-              });
-          } else {
-            callback(null);
-          }
+          const progressMessage = `Speed: ${speed.toFixed(
+            2
+          )} MB/s | ${currentMB} MB / ${totalMB} MB | ${percent}%`;
+          ipcEvent.sender.send("download-progress", progressMessage);
         });
+
+        response.pipe(fileStream);
+
+        fileStream.on("finish", () => {
+          fileStream.close(() => {
+            console.log("Download finished, file saved as:", filePath);
+
+            ipcEvent.sender.send("download-progress", "Unpacking...");
+            if (path.extname(fileName) === ".zip") {
+              console.log("File is a ZIP archive, starting extraction...");
+              extract(filePath, { dir: targetDir })
+                .then(() => {
+                  console.log("Extraction complete.");
+                  fs.unlink(filePath, (err) => {
+                    if (err) console.error("Error deleting zip file:", err);
+                    else console.log("Zip file deleted after extraction.");
+                    callback(null);
+                  });
+                })
+                .catch((err) => {
+                  console.error("Error during extraction:", err);
+                  callback(err);
+                });
+            } else {
+              callback(null);
+            }
+          });
+        });
+      })
+      .on("error", (err) => {
+        console.error("Error during download:", err);
+        fs.unlink(filePath, () => callback(err));
       });
-    })
-    .on("error", (err) => {
-      console.error("Error during download:", err);
-      fs.unlink(filePath, () => callback(err));
-    });
+  }
+
+  // Start the initial request
+  handleRequest(fileUrl);
 }
 
 // -----------------------------------------------------------------------------
-// Update-resource
+// Update-resource (Client Updates)
 // -----------------------------------------------------------------------------
 ipcMain.on("update-resource", (event, resource) => {
   console.log(`Received IPC request to update resource: ${resource}`);
 
-  const baseUrl = `https://github.com/tibia-oce/mythbound-client-public/releases/latest/download/`;
-  const manifestUrl = baseUrl + "latest.yml";
+  // Use the correct URLs as specified
+  const manifestUrl =
+    "https://raw.githubusercontent.com/tibia-oce/mythbound-client-public/refs/heads/main/latest.yml";
   console.log(`Manifest URL for resource "${resource}": ${manifestUrl}`);
 
   const localManifestPath = path.join(
@@ -281,13 +311,16 @@ ipcMain.on("update-resource", (event, resource) => {
         `New version ${remoteVersion} available. Downloading update...`
       );
 
-      const zipFileName = manifest.zipFileName || manifest.path;
+      // Use the path field from manifest and construct the download URL
+      const zipFileName = manifest.path;
       if (!zipFileName) {
-        console.error("No zipFileName or path found in manifest.");
+        console.error("No path found in manifest.");
         event.sender.send("update-status", "Missing zip filename in manifest.");
         return;
       }
-      const fileUrl = baseUrl + zipFileName;
+
+      // Construct the correct download URL
+      const fileUrl = `https://github.com/tibia-oce/mythbound-client-public/releases/latest/download/${zipFileName}`;
 
       console.log(`Downloading update from: ${fileUrl}`);
       const targetDir = path.join(persistentBaseDir, resource);
@@ -338,8 +371,8 @@ ipcMain.on("update-resource", (event, resource) => {
 // Check-resource-update
 // -----------------------------------------------------------------------------
 ipcMain.handle("check-resource-update", async (event, resource) => {
-  const baseUrl = `https://github.com/tibia-oce/mythbound-client-public/releases/latest/download/`;
-  const manifestUrl = baseUrl + "latest.yml";
+  const manifestUrl =
+    "https://raw.githubusercontent.com/tibia-oce/mythbound-client-public/refs/heads/main/latest.yml";
 
   const localManifestPath = path.join(
     persistentBaseDir,
@@ -357,6 +390,12 @@ ipcMain.handle("check-resource-update", async (event, resource) => {
     } catch (e) {
       console.error("Error reading local manifest:", e);
     }
+  }
+
+  // Also check if the client executable exists
+  const clientExists = fs.existsSync(clientExePath);
+  if (!clientExists) {
+    return "update-available"; // Force update if client doesn't exist
   }
 
   return new Promise((resolve, reject) => {
@@ -395,12 +434,73 @@ ipcMain.on("open-resource-folder", (event, resource) => {
 });
 
 // -----------------------------------------------------------------------------
-// Auto-updater for launcher updates: restart the app when an update is downloaded.
+// Auto-updater events for launcher updates
 // -----------------------------------------------------------------------------
+autoUpdater.on("checking-for-update", () => {
+  console.log("Checking for launcher updates...");
+  if (mainWindow) {
+    mainWindow.webContents.send(
+      "update-status",
+      "Checking for launcher updates..."
+    );
+  }
+});
+
+autoUpdater.on("update-available", (info) => {
+  console.log("Launcher update available:", info);
+  if (mainWindow) {
+    mainWindow.webContents.send(
+      "update-status",
+      "Launcher update available. Downloading..."
+    );
+  }
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  console.log("No launcher update available:", info);
+  if (mainWindow) {
+    mainWindow.webContents.send("update-status", "Launcher is up to date.");
+  }
+});
+
+autoUpdater.on("error", (err) => {
+  console.error("Launcher update error:", err);
+  if (mainWindow) {
+    mainWindow.webContents.send(
+      "update-status",
+      "Error checking for launcher updates."
+    );
+  }
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + " - Downloaded " + progressObj.percent + "%";
+  log_message =
+    log_message +
+    " (" +
+    progressObj.transferred +
+    "/" +
+    progressObj.total +
+    ")";
+  console.log(log_message);
+  if (mainWindow) {
+    mainWindow.webContents.send(
+      "download-progress",
+      `Launcher update: ${progressObj.percent.toFixed(1)}%`
+    );
+  }
+});
+
 autoUpdater.on("update-downloaded", (info) => {
   console.log("Launcher update downloaded:", info);
-
-  autoUpdater.quitAndInstall();
+  if (mainWindow) {
+    mainWindow.webContents.send("update-downloaded", info);
+  }
+  // Auto-restart after a short delay
+  setTimeout(() => {
+    autoUpdater.quitAndInstall();
+  }, 3000);
 });
 
 // -----------------------------------------------------------------------------

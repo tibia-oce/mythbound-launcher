@@ -68,7 +68,7 @@
     }
 
     .resource-update {
-      margin-bottom: 20;
+      margin-bottom: 20px;
     }
 
     button.update-btn {
@@ -197,7 +197,26 @@
       /* establishes a positioning context */
       /* Other existing styles... */
     }
+
+    /* Launcher update styles */
+    .launcher-update-banner {
+      background: #ff6b35;
+      color: #fff;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .status-display {
+      color: #ccc;
+      font-size: 12px;
+      text-align: center;
+      margin: 5px 0;
+    }
   </style>
+
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <script>
     // Make sure nodeIntegration is enabled in your BrowserWindow.
@@ -207,6 +226,7 @@
       shell.openExternal(url);
     }
   </script>
+
 </head>
 
 <body>
@@ -229,14 +249,14 @@
   <div id="launcher">
     <header class="top-bar">
       <div class="top-left">
-        <button class="menu-btn" style="outside:none"><i class="fas fa-bars"></i></button>
+        <button class="menu-btn" style="outline:none"><i class="fas fa-bars"></i></button>
         <div class="menu-panel" id="menuPanel">
           <ul>
-            <li><a href="#">Website</a></li>
-            <li><a href="#">My account</a></li>
-            <li><a href="#">Highscores</a></li>
-            <li><a href="#">Shop</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="https://www.mythbound.dev/">Website</a></li>
+            <li><a href="https://www.mythbound.dev/account">My account</a></li>
+            <li><a href="https://www.mythbound.dev/highscores">Highscores</a></li>
+            <li><a href="https://www.mythbound.dev/shop">Shop</a></li>
+            <li><a href="https://www.mythbound.dev/contact">Contact</a></li>
           </ul>
         </div>
       </div>
@@ -266,9 +286,17 @@
           </li>
         </ul>
         <div class="launch-buttons">
+          <!-- Launcher Update Banner (hidden by default) -->
+          <div id="launcherUpdateBanner" class="launcher-update-banner" style="display: none;">
+            Launcher update downloaded! Restarting in 3 seconds...
+          </div>
+
+          <!-- Status Display -->
+          <div id="statusDisplay" class="status-display"></div>
+
           <div class="resource-update" id="resourceUpdate_mythbound-windows">
             <div class="progress-container" id="progressContainer_mythbound-windows">
-              <div class="progress-bar" id="progressBar_mythbound-windows"></div>
+              <div class="progress-bar" id="progressBar_mythbound-windows">0%</div>
             </div>
             <p id="versionDisplay" style="margin-top: 20px; text-align: center; color: #fff;"></p>
           </div>
@@ -523,16 +551,10 @@
         console.log(el.tagName, el, el.getAttribute('href'));
       });
 
-
-
-
       // Listen for update-status messages from main process
       ipcRenderer.on('update-status', (event, status) => {
         console.log("Update status:", status);
         setUpdateStatus(status);
-        if (status.toLowerCase().includes("no update available")) {
-          document.getElementById("progressBarContainer").style.display = "none";
-        }
       });
 
       ipcRenderer.on('resource-update-complete', (event, resource, version) => {
@@ -542,7 +564,11 @@
           updateButton.innerText = "Up to Date";
           updateButton.disabled = true;
           updateButton.classList.add("upToDate");
-          document.getElementById("progressContainer_" + resource).style.display = "none";
+        }
+
+        const progressContainer = document.getElementById("progressContainer_" + resource);
+        if (progressContainer) {
+          progressContainer.style.display = "none";
         }
 
         const launchButton = document.getElementById("launchButton");
@@ -555,6 +581,9 @@
         if (versionDisplay) {
           versionDisplay.innerText = "Game Version: " + version;
         }
+
+        // Reset update flag
+        updateInProgress = false;
       });
 
       // Listen for download-progress messages
@@ -564,13 +593,14 @@
         // Update the progress text inside versionDisplay if needed
         const versionDisplay = document.getElementById("versionDisplay");
         if (versionDisplay) {
-          // If the message contains a percentage, you can update the progress bar too.
+          // If the message contains a percentage, update the progress bar too.
           const match = progressMessage.match(/(\d+)%/);
           if (match) {
             const percent = parseInt(match[1]);
             const progressBar = document.getElementById("progressBar_mythbound-windows");
             if (progressBar) {
               progressBar.style.width = percent + '%';
+              progressBar.innerText = percent + '%';
             }
           }
           // Display the detailed progress text.
@@ -581,38 +611,41 @@
       // Listen for update-downloaded event (for launcher updates)
       ipcRenderer.on('update-downloaded', (event, info) => {
         console.log('Launcher update downloaded:', info);
-        // Show your custom modal if you want; otherwise, your main process might auto-quit.
-        document.getElementById('updateModal').style.display = 'block';
+
+        // Show launcher update banner
+        const banner = document.getElementById('launcherUpdateBanner');
+        if (banner) {
+          banner.style.display = 'block';
+        }
+
+        // Update the launch button to show restart option
         const launchButton = document.getElementById('launchButton');
-        launchButton.innerText = 'Restart';
-        launchButton.disabled = false;
-        setUpdateStatus("Update downloaded. Click 'Restart' to apply the update.");
-        document.getElementById("progressBarContainer").style.display = "block";
+        if (launchButton) {
+          launchButton.innerText = 'Restart Launcher';
+          launchButton.disabled = false;
+        }
+
+        setUpdateStatus("Launcher update downloaded. Restarting automatically in 3 seconds...");
       });
     });
 
     // Helper functions for updating the UI
     function setUpdateStatus(status) {
-      const statusElem = document.getElementById("updateStatus");
+      const statusElem = document.getElementById("statusDisplay");
       if (statusElem) {
         statusElem.innerText = status;
       }
     }
-    function setProgress(percent) {
-      const progressElem = document.getElementById("progressBar");
-      if (progressElem) {
-        progressElem.style.width = percent + '%';
-        progressElem.innerText = percent + '%';
-      }
-    }
+
     function handleLaunchButtonClick() {
       if (!window.isGameInstalled) {
         // Optionally display a message to the user
         alert('The game is not installed. Please click Update first.');
         return;
       }
+
       const btn = document.getElementById('launchButton');
-      if (btn.innerText === 'Restart') {
+      if (btn.innerText === 'Restart Launcher') {
         ipcRenderer.send('restart_app');
       } else {
         ipcRenderer.send('launch_game');
@@ -623,6 +656,7 @@
     function openResourceFolder(resource) {
       ipcRenderer.send('open-resource-folder', resource);
     }
+
     let updateInProgress = false;
 
     function handleUpdate(resource) {
@@ -647,33 +681,15 @@
       if (progressContainer) {
         progressContainer.style.display = "inline-flex";
         const progressBar = document.getElementById("progressBar_" + resource);
-        if (progressBar) progressBar.style.width = "0%";
+        if (progressBar) {
+          progressBar.style.width = "0%";
+          progressBar.innerText = "0%";
+        }
       }
 
-      // Simulate delay before triggering update (or send directly)
-      setTimeout(() => {
-        ipcRenderer.send('update-resource', resource);
-      }, 5000);
+      // Send update request immediately
+      ipcRenderer.send('update-resource', resource);
     }
-
-    // Optional: launcher update handler
-    function handleLauncherUpdate() {
-      ipcRenderer.send('restart_app');
-    }
-
-    // Listen for download-progress messages for resource updates
-    ipcRenderer.on('download-progress', (event, progressMessage) => {
-      console.log("Download progress (resource):", progressMessage);
-      // Format: "Downloaded 50%"
-      const matches = progressMessage.match(/Downloaded (\d+)%/);
-      if (matches) {
-        const percent = matches[1];
-        const progressBars = document.querySelectorAll(".progress-bar");
-        progressBars.forEach(bar => {
-          bar.style.width = percent + "%";
-        });
-      }
-    });
 
     ipcRenderer.on('game-started', () => {
       // Disable the Update button while the game is running.
@@ -686,17 +702,22 @@
 
     ipcRenderer.on('game-stopped', () => {
       const launchButton = document.getElementById("launchButton");
-      if (launchButton) {
+      if (launchButton && launchButton.innerText !== 'Restart Launcher') {
         launchButton.disabled = false;
         launchButton.style.opacity = "";
       }
 
       const updateButton = document.getElementById("updateButton_mythbound-windows");
-      if (updateButton) {
+      if (updateButton && window.isGameInstalled) {
         // If no update is needed, ensure the button remains in the "up-to-date" state.
         updateButton.disabled = true;
         updateButton.classList.add("upToDate");
         updateButton.innerText = "Up to Date";
+      } else if (updateButton) {
+        // Game not installed, enable update button
+        updateButton.disabled = false;
+        updateButton.classList.remove("upToDate");
+        updateButton.innerText = "Update";
       }
 
       const progressContainer = document.getElementById("progressContainer_mythbound-windows");
@@ -704,7 +725,7 @@
         progressContainer.style.display = "none";
       }
 
-      // Optionally, reset your flag here if needed:
+      // Reset update flag
       updateInProgress = false;
     });
 
@@ -742,28 +763,17 @@
       checkResourceStatus(resource);
     });
 
-    // Restart modal button (if using a custom modal for launcher updates)
-    document.addEventListener('DOMContentLoaded', () => {
-      const restartButton = document.getElementById('restartNowButton');
-      if (restartButton) {
-        restartButton.addEventListener('click', () => {
-          ipcRenderer.send('restart_app');
-        });
-      } else {
-        console.error('restartNowButton not found');
-      }
-    });
-
     document.addEventListener('click', function (event) {
       const menuPanel = document.getElementById('menuPanel');
       const menuButton = document.querySelector('.menu-btn');
 
       // Check if the click target is NOT inside the menuPanel or the menuButton
       if (!menuPanel.contains(event.target) && !menuButton.contains(event.target)) {
-        // Hide the menu panel (for example, by setting display to "none" or removing an "active" class)
+        // Hide the menu panel
         menuPanel.style.display = 'none';
       }
     });
+
     document.querySelectorAll('a').forEach(anchor => {
       // Only intercept external links (starting with http)
       if (anchor.getAttribute('href') && anchor.getAttribute('href').startsWith('http')) {
@@ -774,10 +784,10 @@
       }
     });
 
-
   </script>
   <script src="./resources/data/js/aos.js"></script>
   <script src="./resources/data/js/script.js"></script>
+
 </body>
 
 </html>
