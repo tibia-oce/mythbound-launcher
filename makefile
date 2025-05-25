@@ -113,16 +113,6 @@ uninstall-app:
 	sudo rm -rf /opt/$(APP_NAME)
 	sudo rm -f /usr/local/bin/$(APP_NAME)
 
-run-appimage:
-	@echo "Running AppImage..."
-	chmod +x "$(SRC_DIR)/dist/Mythbound Launcher-1.0.0.AppImage"
-	./$(SRC_DIR)/dist/"Mythbound Launcher-1.0.0.AppImage"
-
-run-deb:
-	@echo "Installing and running Deb package..."
-	sudo dpkg -i $(SRC_DIR)/dist/mythbound-launcher_1.0.0_amd64.deb
-	mythbound-launcher
-
 help:
 	@echo "Mythbound Launcher Build System"
 	@echo "==============================="
