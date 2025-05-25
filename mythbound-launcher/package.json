@@ -14,9 +14,9 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "build-linux": "electron-builder --linux --publish=never",
-    "build-windows": "electron-builder --win --publish=never",
-    "build-all": "electron-builder --linux --win --publish=never"
+    "build-linux": "electron-builder --linux --publish=always",
+    "build-windows": "electron-builder --win nsis-web --publish=always",
+    "build-all": "electron-builder --linux --win nsis-web --publish=always"
   },
   "keywords": [
     "mythbound",
@@ -61,8 +61,7 @@
         "provider": "github",
         "owner": "tibia-oce",
         "repo": "mythbound-launcher-public",
-        "private": false,
-        "publishAutoUpdate": true
+        "private": false
       }
     ],
     "linux": {
