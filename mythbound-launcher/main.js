@@ -497,10 +497,7 @@ autoUpdater.on("update-downloaded", (info) => {
   if (mainWindow) {
     mainWindow.webContents.send("update-downloaded", info);
   }
-  // Auto-restart after a short delay
-  setTimeout(() => {
-    autoUpdater.quitAndInstall();
-  }, 3000);
+  autoUpdater.quitAndInstall(true, true);
 });
 
 // -----------------------------------------------------------------------------
@@ -528,7 +525,9 @@ ipcMain.handle("get-version", () => {
 
 ipcMain.on("restart_app", () => {
   console.log("Restarting application for update.");
-  autoUpdater.quitAndInstall();
+  // first `true` = install silently (/S),
+  // second `true` = run the app after install
+  autoUpdater.quitAndInstall(true, true);
 });
 
 ipcMain.on("launch_game", () => {
