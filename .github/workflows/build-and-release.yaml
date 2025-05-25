@@ -315,8 +315,8 @@ jobs:
           VERSION: ${{ steps.release_info.outputs.version }}
         run: |
           # Check if required files exist
-          if [ ! -f " mythbound-launcher-windows.zip " ]; then
-            echo "ERROR:  mythbound-launcher-windows.zip  not found!"
+          if [ ! -f "mythbound-launcher-windows.zip" ]; then
+            echo "ERROR: mythbound-launcher-windows.zip  not found!"
             exit 1
           fi
 
@@ -324,11 +324,11 @@ jobs:
           cat > latest.yml << EOF
           version: $VERSION
           files:
-            - url:  mythbound-launcher-windows.zip 
-              sha512: $(sha512sum  mythbound-launcher-windows.zip  | cut -d' ' -f1)
-              size: $(stat -c%s  mythbound-launcher-windows.zip )
-          path:  mythbound-launcher-windows.zip 
-          sha512: $(sha512sum  mythbound-launcher-windows.zip  | cut -d' ' -f1)
+            - url: mythbound-launcher-windows.zip 
+              sha512: $(sha512sum mythbound-launcher-windows.zip | cut -d' ' -f1)
+              size: $(stat -c%s mythbound-launcher-windows.zip )
+          path: mythbound-launcher-windows.zip 
+          sha512: $(sha512sum mythbound-launcher-windows.zip | cut -d' ' -f1)
           releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
           EOF
 
@@ -409,7 +409,7 @@ jobs:
             mythbound-launcher-portable.exe
             mythbound-launcher.AppImage
             mythbound-launcher.deb
-            mythbound-launcher-windows.zip
+           mythbound-launcher-windows.zip
             mythbound-launcher-linux.tar.gz
             latest.yml
             latest-linux.yml
