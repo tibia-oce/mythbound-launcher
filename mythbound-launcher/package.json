@@ -46,6 +46,7 @@
   "build": {
     "appId": "dev.mythbound.launcher",
     "productName": "Mythbound Launcher",
+    "artifactName": "${productName} Setup ${version}.${ext}",
     "asarUnpack": [
       "resources/**/*"
     ],
@@ -60,7 +61,8 @@
         "provider": "github",
         "owner": "tibia-oce",
         "repo": "mythbound-launcher-public",
-        "private": false
+        "private": false,
+        "publishAutoUpdate": true
       }
     ],
     "linux": {
@@ -86,7 +88,7 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "nsis-web",
           "arch": [
             "x64"
           ]
@@ -94,9 +96,10 @@
       ],
       "icon": "mythbound_logo.ico",
       "publisherName": "Mythbound",
-      "verifyUpdateCodeSignature": false
+      "verifyUpdateCodeSignature": false,
+      "requestedExecutionLevel": "asInvoker"
     },
-    "nsis": {
+    "nsisWeb": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "allowElevation": true,
@@ -104,7 +107,11 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Mythbound Launcher",
       "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true
+      "runAfterFinish": true,
+      "installerIcon": "mythbound_logo.ico",
+      "uninstallerIcon": "mythbound_logo.ico",
+      "differentialPackage": true,
+      "artifactName": "${productName} Web Setup ${version}.${ext}"
     },
     "files": [
       "main.js",

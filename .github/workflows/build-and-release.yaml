@@ -26,7 +26,7 @@ jobs:
           cd mythbound-launcher
           npm ci
 
-      - name: Build Windows Launcher
+      - name: Build Windows Launcher (NSIS-Web)
         run: |
           cd mythbound-launcher
           npm run build-windows
@@ -37,28 +37,72 @@ jobs:
           echo "Contents of dist directory:"
           Get-ChildItem -Path "mythbound-launcher/dist" -Recurse | Format-Table Name, Length, LastWriteTime
 
+          echo "Checking for NSIS-Web critical files:"
+
+          # Check for latest.yml
+          if (Test-Path "mythbound-launcher/dist/latest.yml") {
+            echo "✅ latest.yml found"
+            echo "Content:"
+            Get-Content "mythbound-launcher/dist/latest.yml"
+          } else {
+            echo "❌ latest.yml NOT found"
+          }
+
+          # Check for .7z package files (these are critical for differential updates)
+          $sevenZipFiles = Get-ChildItem -Path "mythbound-launcher/dist" -Filter "*.7z" -ErrorAction SilentlyContinue
+          if ($sevenZipFiles) {
+            echo "✅ .7z package files found:"
+            $sevenZipFiles | ForEach-Object { echo "  - $($_.Name)" }
+          } else {
+            echo "❌ No .7z package files found"
+          }
+
+          # Check for web installer
+          $webSetup = Get-ChildItem -Path "mythbound-launcher/dist" -Filter "*Web Setup*.exe" -ErrorAction SilentlyContinue
+          if ($webSetup) {
+            echo "✅ Web setup installer found:"
+            $webSetup | ForEach-Object { echo "  - $($_.Name)" }
+          } else {
+            echo "❌ Web setup installer NOT found"
+          }
+
+          # Check for blockmap files
+          $blockmapFiles = Get-ChildItem -Path "mythbound-launcher/dist" -Filter "*.blockmap" -ErrorAction SilentlyContinue
+          if ($blockmapFiles) {
+            echo "✅ Blockmap files found:"
+            $blockmapFiles | ForEach-Object { echo "  - $($_.Name)" }
+          } else {
+            echo "❌ No blockmap files found"
+          }
+
       - name: Package Windows Artifacts
         shell: pwsh
         run: |
           # Create artifacts directory
           New-Item -ItemType Directory -Path artifacts/windows -Force
 
-          # Copy setup installer (NSIS)
-          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+          # CRITICAL: Copy ALL generated files for NSIS-Web
 
-          # Copy portable executable (exclude Setup)
-          Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher *.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue -Exclude "*Setup*"
+          # Copy web installer
+          Copy-Item -Path "mythbound-launcher/dist/*Web Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
 
-          # Copy the electron-builder generated latest.yml (if exists)
+          # Copy .7z package files (CRITICAL for differential updates)
+          Copy-Item -Path "mythbound-launcher/dist/*.7z" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+
+          # Copy latest.yml (update manifest)
           Copy-Item -Path "mythbound-launcher/dist/latest.yml" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
 
-          # Zip only the contents of win-unpacked (for manual distribution)
+          # Copy blockmap files (for differential updates)
+          Copy-Item -Path "mythbound-launcher/dist/*.blockmap" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+
+          # Create portable zip from unpacked directory
           $source = "mythbound-launcher/dist/win-unpacked/*"
           $zip    = "artifacts/mythbound-launcher-windows.zip"
           if (Test-Path $zip) { Remove-Item $zip }
           Compress-Archive -Path $source -DestinationPath $zip
 
-          Write-Host "Created $zip"
+          echo "Windows artifacts created:"
+          Get-ChildItem -Path "artifacts/windows/" | Format-Table Name, Length
 
       - name: Upload Windows Full Package
         uses: actions/upload-artifact@v4
@@ -66,24 +110,31 @@ jobs:
           name: mythbound-launcher-windows-full
           path: artifacts/mythbound-launcher-windows.zip
 
-      - name: Upload Windows Setup Installer
+      - name: Upload Windows Web Installer
         uses: actions/upload-artifact@v4
         with:
-          name: mythbound-launcher-windows-setup
-          path: mythbound-launcher/dist/Mythbound Launcher Setup*.exe
+          name: mythbound-launcher-windows-web-installer
+          path: mythbound-launcher/dist/*Web Setup*.exe
 
-      - name: Upload Windows Portable
+      - name: Upload Windows 7z Packages
         uses: actions/upload-artifact@v4
         with:
-          name: mythbound-launcher-windows-portable
-          path: mythbound-launcher/dist/Mythbound Launcher *.exe
-          if-no-files-found: warn
+          name: mythbound-launcher-windows-7z-packages
+          path: mythbound-launcher/dist/*.7z
+          if-no-files-found: error
 
       - name: Upload electron-builder manifest
         uses: actions/upload-artifact@v4
         with:
           name: mythbound-launcher-latest-yml
           path: mythbound-launcher/dist/latest.yml
+          if-no-files-found: error
+
+      - name: Upload blockmap files
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-blockmap-files
+          path: mythbound-launcher/dist/*.blockmap
           if-no-files-found: warn
 
   build-linux:
@@ -118,6 +169,14 @@ jobs:
         run: |
           echo "Contents of dist directory:"
           ls -la mythbound-launcher/dist/
+
+          echo "Checking for critical files:"
+          if [ -f "mythbound-launcher/dist/latest-linux.yml" ]; then
+            echo "✅ latest-linux.yml found"
+            cat mythbound-launcher/dist/latest-linux.yml
+          else
+            echo "❌ latest-linux.yml NOT found"
+          fi
 
       - name: Package Linux Artifacts
         run: |
@@ -182,24 +241,29 @@ jobs:
           name: mythbound-launcher-windows-full
           path: artifacts/windows
 
-      - name: Download Windows Setup Installer
+      - name: Download Windows Web Installer
         uses: actions/download-artifact@v4
         with:
-          name: mythbound-launcher-windows-setup
-          path: artifacts/windows-setup
+          name: mythbound-launcher-windows-web-installer
+          path: artifacts/windows-web-installer
 
-      - name: Download Windows Portable
+      - name: Download Windows 7z Packages
         uses: actions/download-artifact@v4
         with:
-          name: mythbound-launcher-windows-portable
-          path: artifacts/windows-portable
-          continue-on-error: true
+          name: mythbound-launcher-windows-7z-packages
+          path: artifacts/windows-7z-packages
 
       - name: Download electron-builder manifest
         uses: actions/download-artifact@v4
         with:
           name: mythbound-launcher-latest-yml
           path: artifacts/windows-manifest
+
+      - name: Download blockmap files
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-blockmap-files
+          path: artifacts/windows-blockmap
           continue-on-error: true
 
       - name: Download Linux Artifacts
@@ -222,12 +286,18 @@ jobs:
 
       - name: Debug Downloaded Artifacts
         run: |
-          echo "=== Windows Setup ==="
-          ls -la artifacts/windows-setup/ || echo "No windows setup files"
-          echo "=== Windows Portable ==="
-          ls -la artifacts/windows-portable/ || echo "No windows portable files"
+          echo "=== Windows Web Installer ==="
+          ls -la artifacts/windows-web-installer/ || echo "No windows web installer"
+          echo "=== Windows 7z Packages ==="
+          ls -la artifacts/windows-7z-packages/ || echo "No windows 7z packages"
           echo "=== Windows Manifest ==="
           ls -la artifacts/windows-manifest/ || echo "No windows manifest files"
+          if [ -f "artifacts/windows-manifest/latest.yml" ]; then
+            echo "Content of latest.yml:"
+            cat artifacts/windows-manifest/latest.yml
+          fi
+          echo "=== Windows Blockmap ==="
+          ls -la artifacts/windows-blockmap/ || echo "No windows blockmap files"
           echo "=== Linux AppImage ==="
           ls -la artifacts/linux-appimage/ || echo "No linux appimage files"
 
@@ -239,28 +309,42 @@ jobs:
           # Copy and rename Windows files
           cp artifacts/windows/mythbound-launcher-windows.zip artifacts/release/
 
-          # Handle setup installer
-          if ls artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe 1> /dev/null 2>&1; then
-            cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe
-            echo "✅ Setup installer found"
+          # Handle web installer (NSIS-Web)
+          if ls artifacts/windows-web-installer/*Web\ Setup*.exe 1> /dev/null 2>&1; then
+            cp artifacts/windows-web-installer/*Web\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe
+            echo "✅ Web setup installer found and renamed"
           else
-            echo "❌ ERROR: No Windows setup installer found"
+            echo "❌ ERROR: No Windows web setup installer found"
             exit 1
           fi
 
-          # Handle portable executable
-          if ls artifacts/windows-portable/Mythbound\ Launcher\ *.exe 1> /dev/null 2>&1; then
-            find artifacts/windows-portable/ -name "Mythbound Launcher *.exe" ! -name "*Setup*" -exec cp {} artifacts/release/mythbound-launcher-portable.exe \; -quit
+          # CRITICAL: Handle .7z package files (required for differential updates)
+          if ls artifacts/windows-7z-packages/*.7z 1> /dev/null 2>&1; then
+            cp artifacts/windows-7z-packages/*.7z artifacts/release/
+            echo "✅ .7z package files included for differential updates:"
+            ls -la artifacts/windows-7z-packages/*.7z
           else
-            echo "WARNING: No Windows portable executable found"
+            echo "❌ ERROR: No .7z package files found - differential updates will not work"
+            exit 1
           fi
 
-          # Copy electron-builder generated manifest (if exists)
+          # Handle electron-builder generated manifest
           if [ -f "artifacts/windows-manifest/latest.yml" ]; then
             cp artifacts/windows-manifest/latest.yml artifacts/release/
             echo "✅ Using electron-builder generated latest.yml"
+            echo "Content:"
+            cat artifacts/release/latest.yml
           else
-            echo "⚠️ No electron-builder manifest found, will generate manually"
+            echo "❌ ERROR: No electron-builder manifest found"
+            exit 1
+          fi
+
+          # Handle blockmap files for differential updates
+          if ls artifacts/windows-blockmap/*.blockmap 1> /dev/null 2>&1; then
+            cp artifacts/windows-blockmap/*.blockmap artifacts/release/
+            echo "✅ Blockmap files included for differential updates"
+          else
+            echo "⚠️ No blockmap files found - differential updates may be limited"
           fi
 
           # Copy and rename Linux files  
@@ -325,37 +409,31 @@ jobs:
           echo "Downloaded files:"
           ls -la
 
-      - name: Use existing or generate electron-updater manifest
+      - name: Validate and prepare electron-updater manifest
         env:
           VERSION: ${{ steps.release_info.outputs.version }}
         run: |
           # Check if we have electron-builder generated manifest
           if [ -f "latest.yml" ]; then
             echo "✅ Using electron-builder generated latest.yml"
+            
+            # Validate that it contains package information for NSIS-Web
+            if grep -q "packages:" latest.yml; then
+              echo "✅ Manifest contains package information for differential updates"
+            else
+              echo "⚠️ Manifest does not contain package information - differential updates may not work"
+            fi
+            
+            # Update the manifest for public repository paths
+            # Replace the web installer filename to match our public naming
+            sed -i 's/Mythbound Launcher Web Setup [0-9.]*\.exe/mythbound-launcher-setup.exe/g' latest.yml
+            
+            echo "✅ Updated manifest for public repository"
+            echo "Final manifest content:"
             cat latest.yml
           else
-            echo "⚠️ No electron-builder manifest found, generating fallback"
-            
-            # Check if required files exist for fallback
-            if [ ! -f "mythbound-launcher-setup.exe" ]; then
-              echo "ERROR: mythbound-launcher-setup.exe not found!"
-              exit 1
-            fi
-
-            # Generate fallback latest.yml - BUT DON'T USE THIS FOR AUTO-UPDATES
-            cat > latest.yml << EOF
-          version: $VERSION
-          files:
-            - url: mythbound-launcher-setup.exe
-              sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
-              size: $(stat -c%s mythbound-launcher-setup.exe)
-          path: mythbound-launcher-setup.exe
-          sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
-          releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
-          EOF
-
-            echo "⚠️ FALLBACK manifest generated (manual updates only):"
-            cat latest.yml
+            echo "❌ ERROR: No electron-builder manifest found"
+            exit 1
           fi
 
           # Generate latest-linux.yml for Linux (if AppImage exists)
@@ -392,7 +470,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           repository: mythbound-launcher-public
-          commit_message: "chore: update latest manifest(s)"
+          commit_message: "chore: update latest manifest(s) for NSIS-Web differential updates"
           commit_user_name: github-actions[bot]
           commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
           branch: main
@@ -408,31 +486,35 @@ jobs:
             ### Downloads
 
             **Windows:**
-            - [Setup Installer](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-setup.exe) (Recommended - Auto-Updates)
-            - [Portable Version](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-portable.exe) (Manual Updates)
+            - [Setup Installer](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-setup.exe) (Recommended - Auto-Updates with Differential Downloads)
 
             **Linux:**
             - [AppImage](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.AppImage) (Recommended)
             - [Debian Package](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.deb)
 
             ### Installation
-            - **Windows:** Download and run the setup installer for automatic updates
+            - **Windows:** Download and run the setup installer for automatic updates with differential downloads
             - **Linux:** Download AppImage, make executable (`chmod +x`), and run
 
             ### Auto-Updates
-            - **Installed users** (setup.exe): Get automatic silent updates
-            - **Portable users**: Manual updates required - download new versions
+            - **Windows users**: Get automatic silent updates with differential downloads (only changed parts are downloaded)
+            - Updates happen seamlessly in the background
+
+            ### Technical Notes
+            - This release uses NSIS-Web installer with differential update support
+            - Smaller update downloads thanks to .7z package differential updates
 
             For support, visit our [Discord](https://discord.gg/TT2ebFwEyE).
           files: |
             mythbound-launcher-setup.exe
-            mythbound-launcher-portable.exe
             mythbound-launcher.AppImage
             mythbound-launcher.deb
             mythbound-launcher-windows.zip
             mythbound-launcher-linux.tar.gz
             latest.yml
             latest-linux.yml
+            *.7z
+            *.blockmap
           repository: tibia-oce/mythbound-launcher-public
           token: ${{ secrets.GHCR_TOKEN_PRIVATE }}
           draft: false
