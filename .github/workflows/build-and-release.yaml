@@ -14,15 +14,11 @@ env:
   GH_TOKEN: ${{ secrets.GHCR_TOKEN_PRIVATE }}
 
 jobs:
-  build-and-publish:
-    name: Build & Publish (Windows & Linux)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        platform: [win, linux]
+  build-windows:
+    name: Build & Publish Windows
+    runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,11 +30,35 @@ jobs:
           cd mythbound-launcher
           npm ci
 
-      - name: Build & Publish ${{ matrix.platform }}
+      - name: Build & Publish Windows (nsis-web)
         run: |
           cd mythbound-launcher
-          if [ "${{ matrix.platform }}" = "win" ]; then
-            npx electron-builder --win nsis-web --publish=always
-          else
-            npx electron-builder --linux --publish=always
-          fi
+          npx electron-builder --win nsis-web --publish=always
+
+  build-linux:
+    name: Build & Publish Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fuse libfuse2 libnss3-dev libatk-bridge2.0-dev \
+            libdrm2 libxkbcommon-dev libxcomposite-dev libxdamage-dev \
+            libxrandr-dev libgbm-dev libxss-dev libasound2-dev
+
+      - name: Install dependencies
+        run: |
+          cd mythbound-launcher
+          npm ci
+
+      - name: Build & Publish Linux (AppImage & deb)
+        run: |
+          cd mythbound-launcher
+          npx electron-builder --linux --publish=always
