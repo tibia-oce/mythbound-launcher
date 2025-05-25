@@ -1,58 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Game Launcher</title>
-    <link rel="stylesheet" href="./resources/data/css/style.css" />
-    <link rel="stylesheet" href="./resources/data/css/aos.css" />
-	<style>
-	body, html {
-  -webkit-user-select: none; /* Chrome, Safari, Opera */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* Internet Explorer/Edge */
-  user-select: none;         /* Standard syntax */
-}
 
-.draggable-top, .draggable-left, .draggable-right, .draggable-bottom {
-    position: absolute;
-    -webkit-app-region: drag; /* Make it draggable */
-    z-index: 10;
-}
+<head>
+  <meta charset="UTF-8" />
+  <title>Game Launcher</title>
+  <link rel="stylesheet" href="./resources/data/css/style.css" />
+  <link rel="stylesheet" href="./resources/data/css/aos.css" />
+  <style>
+    body,
+    html {
+      -webkit-user-select: none;
+      /* Chrome, Safari, Opera */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* Internet Explorer/Edge */
+      user-select: none;
+      /* Standard syntax */
+    }
 
-.draggable-top {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 20px; /* Top draggable area */
-}
+    .draggable-top,
+    .draggable-left,
+    .draggable-right,
+    .draggable-bottom {
+      position: absolute;
+      -webkit-app-region: drag;
+      /* Make it draggable */
+      z-index: 10;
+    }
 
-.draggable-left {
-    top: 0;
-    left: 0;
-    width: 15px; /* Left draggable area */
-    height: 100%;
-}
+    .draggable-top {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      /* Top draggable area */
+    }
 
-.draggable-right {
-    top: 0;
-    right: 0;
-    width: 15px; /* Right draggable area */
-    height: 100%;
-}
+    .draggable-left {
+      top: 0;
+      left: 0;
+      width: 15px;
+      /* Left draggable area */
+      height: 100%;
+    }
 
-.draggable-bottom {
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 15px; /* Bottom draggable area */
-}
+    .draggable-right {
+      top: 0;
+      right: 0;
+      width: 15px;
+      /* Right draggable area */
+      height: 100%;
+    }
 
-html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Edge */
-}
-.resource-update {
+    .draggable-bottom {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      /* Bottom draggable area */
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: none;
+      /* Chrome, Safari, Edge */
+    }
+
+    .resource-update {
       margin-bottom: 20;
     }
+
     button.update-btn {
       background: #1e90ff;
       border: none;
@@ -62,7 +80,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
       cursor: pointer;
       transition: background 0.3s;
     }
-    button.update-btn:hover { background: #187bcd; }
+
+    button.update-btn:hover {
+      background: #187bcd;
+    }
+
     button.optionButton {
       border: none;
       border-radius: 50%;
@@ -72,29 +94,30 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
       padding: 8px;
       transition: background 0.3s;
     }
-	.progress-container {
-		display: none;
-		width: 150px;
-		height: 20px;
-		background: #444;
-		border-radius: 5px;
-		overflow: hidden;
-		margin-bottom: 10px;
-		align-items: center;
-		padding: 0;
-		color: #fff;
-		font-size: 14px;
-	}
 
-	.progress-bar {
-		height: 100%;
-		background: #1e90ff;
-		width: 0%;
-		transition: width 0.2s ease;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+    .progress-container {
+      display: none;
+      width: 150px;
+      height: 20px;
+      background: #444;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      align-items: center;
+      padding: 0;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #1e90ff;
+      width: 0%;
+      transition: width 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     .update-banner {
       background: #66c0f4;
@@ -106,9 +129,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
       justify-content: space-between;
       align-items: center;
     }
+
     .update-text {
       font-weight: bold;
     }
+
     .update-button {
       background: #1e90ff;
       border: none;
@@ -118,622 +143,641 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
       cursor: pointer;
       transition: background 0.3s;
     }
-	button.upToDate {
-	  background: #28a745 !important;
-	}
+
+    button.upToDate {
+      background: #28a745 !important;
+    }
+
     #launchButton:disabled {
       background: #666;
       cursor: not-allowed;
     }
-	.launch-buttons {
-  position: absolute;
-  bottom: 20px; /* adjust spacing from the bottom as needed */
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* spacing between buttons */
-  width: 100%; /* optional: stretch buttons or center them */
-  align-items: center; /* centers the buttons horizontally */
-}
 
-.window-controls {
-  position: fixed;
-  display: flex;
-  z-index: 9999;
-  -webkit-app-region: no-drag;  /* Ensure the buttons remain clickable */
-}
-.window-controls button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  -webkit-app-region: no-drag;
-}
-.left-panel {
-  position: relative; /* establishes a positioning context */
-  /* Other existing styles... */
-}
-</style>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-	<script>
-  // Make sure nodeIntegration is enabled in your BrowserWindow.
-  const { shell } = require('electron');
-  
-  function openExternalLink(url) {
-    shell.openExternal(url);
-  }
-</script>
-  </head>
-  <body>
+    .launch-buttons {
+      position: absolute;
+      bottom: 20px;
+      /* adjust spacing from the bottom as needed */
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      /* spacing between buttons */
+      width: 100%;
+      /* optional: stretch buttons or center them */
+      align-items: center;
+      /* centers the buttons horizontally */
+    }
+
+    .window-controls {
+      position: fixed;
+      display: flex;
+      z-index: 9999;
+      -webkit-app-region: no-drag;
+      /* Ensure the buttons remain clickable */
+    }
+
+    .window-controls button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      -webkit-app-region: no-drag;
+    }
+
+    .left-panel {
+      position: relative;
+      /* establishes a positioning context */
+      /* Other existing styles... */
+    }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script>
+    // Make sure nodeIntegration is enabled in your BrowserWindow.
+    const { shell } = require('electron');
+
+    function openExternalLink(url) {
+      shell.openExternal(url);
+    }
+  </script>
+</head>
+
+<body>
   <div class="draggable-top"></div>
-<div class="draggable-left"></div>
-<div class="draggable-right"></div>
-<div class="draggable-bottom"></div>
-    <div id="preloader">
-      <div class="spinner-multi">
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-        <div class="circle"></div>
-      </div>
+  <div class="draggable-left"></div>
+  <div class="draggable-right"></div>
+  <div class="draggable-bottom"></div>
+  <div id="preloader">
+    <div class="spinner-multi">
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
     </div>
-    <div id="launcher">
-      <header class="top-bar">
-        <div class="top-left">
-          <button class="menu-btn" style="outside:none"><i class="fas fa-bars"></i></button>
-          <div class="menu-panel" id="menuPanel">
-            <ul>
-              <li><a href="#">Website</a></li>
-              <li><a href="#">My account</a></li>
-              <li><a href="#">Highscores</a></li>
-			  <li><a href="#">Shop</a></li>
-			  <li><a href="#">Contact</a></li>
-            </ul>
-          </div>
+  </div>
+  <div id="launcher">
+    <header class="top-bar">
+      <div class="top-left">
+        <button class="menu-btn" style="outside:none"><i class="fas fa-bars"></i></button>
+        <div class="menu-panel" id="menuPanel">
+          <ul>
+            <li><a href="#">Website</a></li>
+            <li><a href="#">My account</a></li>
+            <li><a href="#">Highscores</a></li>
+            <li><a href="#">Shop</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
         </div>
-		<div class="top-right">
-          <button class="window-btn" id="minimizeBtn" style="outline: none"><i class="fas fa-minus"></i></button>
-          <button class="window-btn" id="closeBtn" style="outline:none"><i class="fas fa-times"></i></button>
-        </div>
-      </header>
-      <div class="content-wrapper">
-        <nav class="left-panel">
-		<ul>
-			<li class="tab-button active" data-tab="tab1">
-			<img src="./resources/data/images/icon_home.png" class="tab-icon" alt="Home Icon">
-			<span class="tab-text">Home</span>
-			</li>
-			<li class="tab-button" data-tab="tab2">
-			<img src="./resources/data/images/icon_news.png" class="tab-icon" alt="News Icon">
-			<span class="tab-text">News</span>
-			</li>
-			<li class="tab-button" data-tab="tab3">
-			<img src="./resources/data/images/icon_changelogs.png" class="tab-icon" alt="Changelogs Icon">
-			<span class="tab-text">Changelogs</span>
-			</li>
-			<li class="tab-button" data-tab="tab4">
-			<img src="./resources/data/images/icon_wiki.png" class="tab-icon" alt="Wikipedia Icon">
-			<span class="tab-text">Wikipedia</span>
-			</li>
-		</ul>
-		<div class="launch-buttons">
-				<div class="resource-update" id="resourceUpdate_mythbound-windows">
-				  <div class="progress-container" id="progressContainer_mythbound-windows">
-					<div class="progress-bar" id="progressBar_mythbound-windows"></div>
-				</div>
-				<p id="versionDisplay" style="margin-top: 20px; text-align: center; color: #fff;"></p>
-		</div>
-		<button class="action-btn" id="launchButton" style="width:150px">Play</button>
-		<button class="action-btn" id="updateButton_mythbound-windows" style="width:150px" onclick="handleUpdate('mythbound-windows')">Update</button>
-		<button class="action-btn" id="optionsBtn" style="width:150px" onclick="openResourceFolder('mythbound-windows')">⚙ Options</button>
-		</div>
-		</nav>
-        <div class="tab-views">
-          <!-- TAB 1 (HOME) -->
-          <div class="tab-view active" id="tab1">
-            <div class="tab-background">
-              <video autoplay muted loop>
-                <source src="./resources/data/images/background_vid.mp4" type="video/mp4" />
-              </video>
+      </div>
+      <div class="top-right">
+        <button class="window-btn" id="minimizeBtn" style="outline: none"><i class="fas fa-minus"></i></button>
+        <button class="window-btn" id="closeBtn" style="outline:none"><i class="fas fa-times"></i></button>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <nav class="left-panel">
+        <ul>
+          <li class="tab-button active" data-tab="tab1">
+            <img src="./resources/data/images/icon_home.png" class="tab-icon" alt="Home Icon">
+            <span class="tab-text">Home</span>
+          </li>
+          <li class="tab-button" data-tab="tab2">
+            <img src="./resources/data/images/icon_news.png" class="tab-icon" alt="News Icon">
+            <span class="tab-text">News</span>
+          </li>
+          <li class="tab-button" data-tab="tab3">
+            <img src="./resources/data/images/icon_changelogs.png" class="tab-icon" alt="Changelogs Icon">
+            <span class="tab-text">Changelogs</span>
+          </li>
+          <li class="tab-button" data-tab="tab4">
+            <img src="./resources/data/images/icon_wiki.png" class="tab-icon" alt="Wikipedia Icon">
+            <span class="tab-text">Wikipedia</span>
+          </li>
+        </ul>
+        <div class="launch-buttons">
+          <div class="resource-update" id="resourceUpdate_mythbound-windows">
+            <div class="progress-container" id="progressContainer_mythbound-windows">
+              <div class="progress-bar" id="progressBar_mythbound-windows"></div>
             </div>
-            <div class="tab-content scrollable">
-				<div class="home-character" data-aos="fade" data-aos-duration="500" data-aos-delay="1000">
-				<img src="./resources/data/images/effect.gif" class="home-character__animation" />
-				<img src="./resources/data/images/homeMainCharacter.png" class="home-character__image" alt="wolf character" />
-				<p class="home-description">
-                  Welcome to the ultimate gaming experience! Dive into an adventure where challenges meet innovation.
-                </p>
-			</div>
-              <div class="home-header">
-                <img src="./resources/data/images/frozen.png" class="home-logo" />
-              </div>
-			  <div class="scroll-indicator">
-                  <span class="arrow">↓</span>
-                </div>
-              <div class="grid-container">
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/sanguine_items-gif.4610/"/>
-                  <p>Bakgragore & Soul Added!</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/mercurial-gif.4812/" />
-                  <p>New Custom Items added in game, custom quests!</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/tp_island-png.4815/"/>
-                  <p>New Teleport Island</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/aquatic_overlord_thalassa-png.4705/"/>
-                  <p>Take down the World Bosses around the isles</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/1710696833170-png.4704/"/>
-                  <p>More than 50 Custom monsters</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/azazel_infernal_seraph-png.4706/"/>
-                  <p>Azazel is coming out</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/8-png.5020/"/>
-                  <p>Crafting System Enhanced</p>
-                </div>
-                <div class="grid-item">
-                  <img src="https://opengamescommunity.com/index.php?attachments/1-png.5013/"/>
-                  <p>Candia Isle</p>
-                </div>
-              </div>
-            </div>
+            <p id="versionDisplay" style="margin-top: 20px; text-align: center; color: #fff;"></p>
           </div>
-
-          <!-- TAB 2 (NEWS) -->
-          <div class="tab-view" id="tab2">
-            <div class="tab-background">
-              <video autoplay muted loop>
-                <source src="./resources/data/images/background_vid_2.mp4" type="video/mp4" />
-              </video>
+          <button class="action-btn" id="launchButton" style="width:150px">Play</button>
+          <button class="action-btn" id="updateButton_mythbound-windows" style="width:150px"
+            onclick="handleUpdate('mythbound-windows')">Update</button>
+          <button class="action-btn" id="optionsBtn" style="width:150px"
+            onclick="openResourceFolder('mythbound-windows')">⚙ Options</button>
+        </div>
+      </nav>
+      <div class="tab-views">
+        <!-- TAB 1 (HOME) -->
+        <div class="tab-view active" id="tab1">
+          <div class="tab-background">
+            <video autoplay muted loop>
+              <source src="./resources/data/images/background_vid.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="tab-content scrollable">
+            <div class="home-character" data-aos="fade" data-aos-duration="500" data-aos-delay="1000">
+              <img src="./resources/data/images/effect.gif" class="home-character__animation" />
+              <img src="./resources/data/images/homeMainCharacter.png" class="home-character__image"
+                alt="wolf character" />
+              <p class="home-description">
+                Welcome to the ultimate gaming experience! Dive into an adventure where challenges meet innovation.
+              </p>
             </div>
-            <div class="tab-content scrollable">
-              <h2>News</h2>
-              <p>Below are 3 stacked panels with an image + some text:</p>
-              <div class="news-panel">
+            <div class="home-header">
+              <img src="./resources/data/images/frozen.png" class="home-logo" />
+            </div>
+            <div class="scroll-indicator">
+              <span class="arrow">↓</span>
+            </div>
+            <div class="grid-container">
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/sanguine_items-gif.4610/" />
+                <p>Bakgragore & Soul Added!</p>
+              </div>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/mercurial-gif.4812/" />
+                <p>New Custom Items added in game, custom quests!</p>
+              </div>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/tp_island-png.4815/" />
+                <p>New Teleport Island</p>
+              </div>
+              <div class="grid-item">
                 <img src="https://opengamescommunity.com/index.php?attachments/aquatic_overlord_thalassa-png.4705/" />
-                <p>
-                 Take a boat and navigate around the continent to enter on the 9 new isles availables, but also on other cities! Find the World Bosses and get an incredible loot!<br>
-				 Possible to loot Eldritch items, badges, rare boats and much more!
-                </p>
+                <p>Take down the World Bosses around the isles</p>
               </div>
-              <div class="news-panel">
-                <img src="https://opengamescommunity.com/index.php?attachments/sanguine_items-gif.4610/"/>
-                <p>
-                  While Bakgragore and Goshnar bosses have been implemented on Kilmaresh after a breach appears on the continent, they are prepared to face the immortals who try enter on their realm!
-                </p>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/1710696833170-png.4704/" />
+                <p>More than 50 Custom monsters</p>
               </div>
-              <div class="news-panel">
-                <img src="https://opengamescommunity.com/index.php?attachments/1710696833170-png.4704/" alt="News Panel 3" />
-                <p>
-                  Each monster is unique, you can find them on the isles!
-                </p>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/azazel_infernal_seraph-png.4706/" />
+                <p>Azazel is coming out</p>
               </div>
-            </div>
-          </div>
-
-          <!-- TAB 3 (CHANGELOGS) -->
-          <div class="tab-view" id="tab3">
-            <div class="tab-background">
-              <video autoplay muted loop>
-                <source src="./resources/data/images/background_vid_3.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="tab-content scrollable">
-              <h2>Changelogs</h2>
-			  <div class="changelog-panel">
-                <h3>Update v3.0</h3>
-                <p>
-                  - Key changes:
-                  <br />
-                  &nbsp;&nbsp;* Improved UI performance.
-                  <br />
-                  &nbsp;&nbsp;* Fixed multiple crashes on older systems.
-                  <br />
-                  &nbsp;&nbsp;* Added new quest lines.
-                </p>
-                <p>
-                  - Additional fixes:
-                  <br />
-                  &nbsp;&nbsp;* Updated translations for multiple languages.
-                  <br />
-                  &nbsp;&nbsp;* Removed deprecated API calls.
-                  <br />
-                  &nbsp;&nbsp;* Optimized memory usage.
-                </p>
-                <p>
-                  Thank you for your continued support. More updates to come soon!
-                </p>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/8-png.5020/" />
+                <p>Crafting System Enhanced</p>
               </div>
-			  <br>
-              <div class="changelog-panel">
-                <h3>Update v2.0</h3>
-                <p>
-                  - Key changes:
-                  <br />
-                  &nbsp;&nbsp;* Improved UI performance.
-                  <br />
-                  &nbsp;&nbsp;* Fixed multiple crashes on older systems.
-                  <br />
-                  &nbsp;&nbsp;* Added new quest lines.
-                </p>
-                <p>
-                  - Additional fixes:
-                  <br />
-                  &nbsp;&nbsp;* Updated translations for multiple languages.
-                  <br />
-                  &nbsp;&nbsp;* Removed deprecated API calls.
-                  <br />
-                  &nbsp;&nbsp;* Optimized memory usage.
-                </p>
-                <p>
-                  Thank you for your continued support. More updates to come soon!
-                </p>
-              </div>
-			   <br>
-			  <div class="changelog-panel">
-                <h3>Update v1.0</h3>
-                <p>
-                  - Key changes:
-                  <br />
-                  &nbsp;&nbsp;* Improved UI performance.
-                  <br />
-                  &nbsp;&nbsp;* Fixed multiple crashes on older systems.
-                  <br />
-                  &nbsp;&nbsp;* Added new quest lines.
-                </p>
-                <p>
-                  - Additional fixes:
-                  <br />
-                  &nbsp;&nbsp;* Updated translations for multiple languages.
-                  <br />
-                  &nbsp;&nbsp;* Removed deprecated API calls.
-                  <br />
-                  &nbsp;&nbsp;* Optimized memory usage.
-                </p>
-                <p>
-                  Thank you for your continued support. More updates to come soon!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- TAB 4 (WIKIPEDIA) -->
-          <div class="tab-view" id="tab4">
-            <div class="tab-background">
-              <video autoplay muted loop>
-                <source src="./resources/data/images/background_vid_4.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="tab-content scrollable">
-              <h2>Wikipedia</h2>
-			  <br></br>
-              <div class="wiki-menu" id="wikiMenu">
-                <button class="wiki-button" data-entry="1">Ancestral System</button>
-                <button class="wiki-button" data-entry="2">Entry 2</button>
-                <button class="wiki-button" data-entry="3">Entry 3</button>
-                <button class="wiki-button" data-entry="4">Entry 4</button>
-                <button class="wiki-button" data-entry="5">Entry 5</button>
-                <button class="wiki-button" data-entry="6">Entry 6</button>
-                <button class="wiki-button" data-entry="7">Entry 7</button>
-              </div>
-              <div class="wiki-content" id="wikiContent">
-                <p>Welcome to wikipedia, to get more information click on the buttons on top.</p>
+              <div class="grid-item">
+                <img src="https://opengamescommunity.com/index.php?attachments/1-png.5013/" />
+                <p>Candia Isle</p>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- TAB 2 (NEWS) -->
+        <div class="tab-view" id="tab2">
+          <div class="tab-background">
+            <video autoplay muted loop>
+              <source src="./resources/data/images/background_vid_2.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="tab-content scrollable">
+            <h2>News</h2>
+            <p>Below are 3 stacked panels with an image + some text:</p>
+            <div class="news-panel">
+              <img src="https://opengamescommunity.com/index.php?attachments/aquatic_overlord_thalassa-png.4705/" />
+              <p>
+                Take a boat and navigate around the continent to enter on the 9 new isles availables, but also on other
+                cities! Find the World Bosses and get an incredible loot!<br>
+                Possible to loot Eldritch items, badges, rare boats and much more!
+              </p>
+            </div>
+            <div class="news-panel">
+              <img src="https://opengamescommunity.com/index.php?attachments/sanguine_items-gif.4610/" />
+              <p>
+                While Bakgragore and Goshnar bosses have been implemented on Kilmaresh after a breach appears on the
+                continent, they are prepared to face the immortals who try enter on their realm!
+              </p>
+            </div>
+            <div class="news-panel">
+              <img src="https://opengamescommunity.com/index.php?attachments/1710696833170-png.4704/"
+                alt="News Panel 3" />
+              <p>
+                Each monster is unique, you can find them on the isles!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3 (CHANGELOGS) -->
+        <div class="tab-view" id="tab3">
+          <div class="tab-background">
+            <video autoplay muted loop>
+              <source src="./resources/data/images/background_vid_3.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="tab-content scrollable">
+            <h2>Changelogs</h2>
+            <div class="changelog-panel">
+              <h3>Update v3.0</h3>
+              <p>
+                - Key changes:
+                <br />
+                &nbsp;&nbsp;* Improved UI performance.
+                <br />
+                &nbsp;&nbsp;* Fixed multiple crashes on older systems.
+                <br />
+                &nbsp;&nbsp;* Added new quest lines.
+              </p>
+              <p>
+                - Additional fixes:
+                <br />
+                &nbsp;&nbsp;* Updated translations for multiple languages.
+                <br />
+                &nbsp;&nbsp;* Removed deprecated API calls.
+                <br />
+                &nbsp;&nbsp;* Optimized memory usage.
+              </p>
+              <p>
+                Thank you for your continued support. More updates to come soon!
+              </p>
+            </div>
+            <br>
+            <div class="changelog-panel">
+              <h3>Update v2.0</h3>
+              <p>
+                - Key changes:
+                <br />
+                &nbsp;&nbsp;* Improved UI performance.
+                <br />
+                &nbsp;&nbsp;* Fixed multiple crashes on older systems.
+                <br />
+                &nbsp;&nbsp;* Added new quest lines.
+              </p>
+              <p>
+                - Additional fixes:
+                <br />
+                &nbsp;&nbsp;* Updated translations for multiple languages.
+                <br />
+                &nbsp;&nbsp;* Removed deprecated API calls.
+                <br />
+                &nbsp;&nbsp;* Optimized memory usage.
+              </p>
+              <p>
+                Thank you for your continued support. More updates to come soon!
+              </p>
+            </div>
+            <br>
+            <div class="changelog-panel">
+              <h3>Update v1.0</h3>
+              <p>
+                - Key changes:
+                <br />
+                &nbsp;&nbsp;* Improved UI performance.
+                <br />
+                &nbsp;&nbsp;* Fixed multiple crashes on older systems.
+                <br />
+                &nbsp;&nbsp;* Added new quest lines.
+              </p>
+              <p>
+                - Additional fixes:
+                <br />
+                &nbsp;&nbsp;* Updated translations for multiple languages.
+                <br />
+                &nbsp;&nbsp;* Removed deprecated API calls.
+                <br />
+                &nbsp;&nbsp;* Optimized memory usage.
+              </p>
+              <p>
+                Thank you for your continued support. More updates to come soon!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4 (WIKIPEDIA) -->
+        <div class="tab-view" id="tab4">
+          <div class="tab-background">
+            <video autoplay muted loop>
+              <source src="./resources/data/images/background_vid_4.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="tab-content scrollable">
+            <h2>Wikipedia</h2>
+            <br></br>
+            <div class="wiki-menu" id="wikiMenu">
+              <button class="wiki-button" data-entry="1">Ancestral System</button>
+              <button class="wiki-button" data-entry="2">Entry 2</button>
+              <button class="wiki-button" data-entry="3">Entry 3</button>
+              <button class="wiki-button" data-entry="4">Entry 4</button>
+              <button class="wiki-button" data-entry="5">Entry 5</button>
+              <button class="wiki-button" data-entry="6">Entry 6</button>
+              <button class="wiki-button" data-entry="7">Entry 7</button>
+            </div>
+            <div class="wiki-content" id="wikiContent">
+              <p>Welcome to wikipedia, to get more information click on the buttons on top.</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <footer class="bottom-bar">
-		<div class="footer-copy">
-			Copyright 2025 
-		<a href="https://www.mythbound.dev/">Mythbound</a> launcher by Manawa.
-		</div>
-	  </footer>
     </div>
-	<script>
-      const { ipcRenderer } = require('electron');
+    <footer class="bottom-bar">
+      <div class="footer-copy">
+        Copyright 2025
+        <a href="https://www.mythbound.dev/">Mythbound</a> launcher by Manawa.
+      </div>
+    </footer>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
 
-      // Window and button event listeners
-      document.addEventListener('DOMContentLoaded', () => {
-        // Window controls
-        document.getElementById('minimizeBtn')?.addEventListener('click', () => {
-          ipcRenderer.send('minimize-window');
-        });
-        document.getElementById('closeBtn')?.addEventListener('click', () => {
-          ipcRenderer.send('close-window');
-        });
-        document.getElementById('launchButton').addEventListener('click', () => {
-          handleLaunchButtonClick();
-        });
+    // Window and button event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Window controls
+      document.getElementById('minimizeBtn')?.addEventListener('click', () => {
+        ipcRenderer.send('minimize-window');
+      });
+      document.getElementById('closeBtn')?.addEventListener('click', () => {
+        ipcRenderer.send('close-window');
+      });
+      document.getElementById('launchButton').addEventListener('click', () => {
+        handleLaunchButtonClick();
+      });
 
-       // Get all elements with an href attribute
-const allHrefElements = document.querySelectorAll('[href]');
+      // Get all elements with an href attribute
+      const allHrefElements = document.querySelectorAll('[href]');
 
-// Filter only those with an external URL (starting with "http")
-const externalHrefElements = Array.from(allHrefElements).filter(el => {
-  const url = el.getAttribute('href');
-  return url && url.startsWith('http');
-});
+      // Filter only those with an external URL (starting with "http")
+      const externalHrefElements = Array.from(allHrefElements).filter(el => {
+        const url = el.getAttribute('href');
+        return url && url.startsWith('http');
+      });
 
-// Log them (tag name and href value)
-externalHrefElements.forEach(el => {
-  console.log(el.tagName, el, el.getAttribute('href'));
-});
-
-
+      // Log them (tag name and href value)
+      externalHrefElements.forEach(el => {
+        console.log(el.tagName, el, el.getAttribute('href'));
+      });
 
 
-        // Listen for update-status messages from main process
-        ipcRenderer.on('update-status', (event, status) => {
-          console.log("Update status:", status);
-          setUpdateStatus(status);
-          if (status.toLowerCase().includes("no update available")) {
-            document.getElementById("progressBarContainer").style.display = "none";
-          }
-        });
-		
-		ipcRenderer.on('resource-update-complete', (event, resource, version) => {
-  window.isGameInstalled = true; // Mark the game as installed/updated
-  const updateButton = document.getElementById("updateButton_" + resource);
-  if (updateButton) {
-    updateButton.innerText = "Up to Date";
-    updateButton.disabled = true;
-    updateButton.classList.add("upToDate");
-    document.getElementById("progressContainer_" + resource).style.display = "none";
-  }
-  
-  const launchButton = document.getElementById("launchButton");
-  if (launchButton) {
-    launchButton.disabled = false;
-    launchButton.style.opacity = "";
-  }
-  
-  const versionDisplay = document.getElementById("versionDisplay");
-  if (versionDisplay) {
-    versionDisplay.innerText = "Game Version: " + version;
-  }
-});
 
-        // Listen for download-progress messages
-        ipcRenderer.on('download-progress', (event, progressMessage) => {
-  console.log("Download progress:", progressMessage);
 
-  // Update the progress text inside versionDisplay if needed
-  const versionDisplay = document.getElementById("versionDisplay");
-  if (versionDisplay) {
-    // If the message contains a percentage, you can update the progress bar too.
-    const match = progressMessage.match(/(\d+)%/);
-    if (match) {
-      const percent = parseInt(match[1]);
-      const progressBar = document.getElementById("progressBar_mythbound-windows");
-      if (progressBar) {
-        progressBar.style.width = percent + '%';
-      }
-    }
-    // Display the detailed progress text.
-    versionDisplay.innerText = progressMessage;
-  }
-});
+      // Listen for update-status messages from main process
+      ipcRenderer.on('update-status', (event, status) => {
+        console.log("Update status:", status);
+        setUpdateStatus(status);
+        if (status.toLowerCase().includes("no update available")) {
+          document.getElementById("progressBarContainer").style.display = "none";
+        }
+      });
 
-        // Listen for update-downloaded event (for launcher updates)
-        ipcRenderer.on('update-downloaded', (event, info) => {
-          console.log('Launcher update downloaded:', info);
-          // Show your custom modal if you want; otherwise, your main process might auto-quit.
-          document.getElementById('updateModal').style.display = 'block';
-          const launchButton = document.getElementById('launchButton');
-          launchButton.innerText = 'Restart';
+      ipcRenderer.on('resource-update-complete', (event, resource, version) => {
+        window.isGameInstalled = true; // Mark the game as installed/updated
+        const updateButton = document.getElementById("updateButton_" + resource);
+        if (updateButton) {
+          updateButton.innerText = "Up to Date";
+          updateButton.disabled = true;
+          updateButton.classList.add("upToDate");
+          document.getElementById("progressContainer_" + resource).style.display = "none";
+        }
+
+        const launchButton = document.getElementById("launchButton");
+        if (launchButton) {
           launchButton.disabled = false;
-          setUpdateStatus("Update downloaded. Click 'Restart' to apply the update.");
-          document.getElementById("progressBarContainer").style.display = "block";
-        });
+          launchButton.style.opacity = "";
+        }
+
+        const versionDisplay = document.getElementById("versionDisplay");
+        if (versionDisplay) {
+          versionDisplay.innerText = "Game Version: " + version;
+        }
       });
 
-      // Helper functions for updating the UI
-      function setUpdateStatus(status) {
-        const statusElem = document.getElementById("updateStatus");
-        if (statusElem) {
-          statusElem.innerText = status;
-        }
-      }
-      function setProgress(percent) {
-        const progressElem = document.getElementById("progressBar");
-        if (progressElem) {
-          progressElem.style.width = percent + '%';
-          progressElem.innerText = percent + '%';
-        }
-      }
-      function handleLaunchButtonClick() {
-  if (!window.isGameInstalled) {
-    // Optionally display a message to the user
-    alert('The game is not installed. Please click Update first.');
-    return;
-  }
-  const btn = document.getElementById('launchButton');
-  if (btn.innerText === 'Restart') {
-    ipcRenderer.send('restart_app');
-  } else {
-    ipcRenderer.send('launch_game');
-  }
-}
-
-      // Resource update functions
-      function openResourceFolder(resource) {
-        ipcRenderer.send('open-resource-folder', resource);
-      }
-      let updateInProgress = false;
-
-function handleUpdate(resource) {
-  if (updateInProgress) return; // Prevent re-triggering if already updating
-  updateInProgress = true;
-
-  const launchButton = document.getElementById("launchButton");
-  const updateButton = document.getElementById("updateButton_" + resource);
-  const progressContainer = document.getElementById("progressContainer_" + resource);
-
-  if (launchButton) {
-    launchButton.disabled = true;
-    launchButton.style.opacity = "0.5";
-  }
-  
-  if (updateButton) {
-    updateButton.innerText = "Updating...";
-    updateButton.disabled = true;
-    updateButton.classList.remove("upToDate");
-  }
-  
-  if (progressContainer) {
-    progressContainer.style.display = "inline-flex";
-    const progressBar = document.getElementById("progressBar_" + resource);
-    if (progressBar) progressBar.style.width = "0%";
-  }
-  
-  // Simulate delay before triggering update (or send directly)
-  setTimeout(() => {
-    ipcRenderer.send('update-resource', resource);
-  }, 5000);
-}
-
-      // Optional: launcher update handler
-      function handleLauncherUpdate() {
-        ipcRenderer.send('restart_app');
-      }
-
-      // Listen for download-progress messages for resource updates
+      // Listen for download-progress messages
       ipcRenderer.on('download-progress', (event, progressMessage) => {
-        console.log("Download progress (resource):", progressMessage);
-        // Format: "Downloaded 50%"
-        const matches = progressMessage.match(/Downloaded (\d+)%/);
-        if (matches) {
-          const percent = matches[1];
-          const progressBars = document.querySelectorAll(".progress-bar");
-          progressBars.forEach(bar => {
-            bar.style.width = percent + "%";
-          });
+        console.log("Download progress:", progressMessage);
+
+        // Update the progress text inside versionDisplay if needed
+        const versionDisplay = document.getElementById("versionDisplay");
+        if (versionDisplay) {
+          // If the message contains a percentage, you can update the progress bar too.
+          const match = progressMessage.match(/(\d+)%/);
+          if (match) {
+            const percent = parseInt(match[1]);
+            const progressBar = document.getElementById("progressBar_mythbound-windows");
+            if (progressBar) {
+              progressBar.style.width = percent + '%';
+            }
+          }
+          // Display the detailed progress text.
+          versionDisplay.innerText = progressMessage;
         }
       });
-	  
-	  ipcRenderer.on('game-started', () => {
-  // Disable the Update button while the game is running.
-		const updateButton = document.getElementById("updateButton_mythbound-windows");
-		if (updateButton) {
-			updateButton.disabled = true;
-			updateButton.style.opacity = "0.5"; 
-		}
-	  });
 
-	  ipcRenderer.on('game-stopped', () => {
-  const launchButton = document.getElementById("launchButton");
-  if (launchButton) {
-    launchButton.disabled = false;
-    launchButton.style.opacity = "";
-  }
-  
-  const updateButton = document.getElementById("updateButton_mythbound-windows");
-  if (updateButton) {
-    // If no update is needed, ensure the button remains in the "up-to-date" state.
-    updateButton.disabled = true;
-    updateButton.classList.add("upToDate");
-    updateButton.innerText = "Up to Date";
-  }
-  
-  const progressContainer = document.getElementById("progressContainer_mythbound-windows");
-  if (progressContainer) {
-    progressContainer.style.display = "none";
-  }
-  
-  // Optionally, reset your flag here if needed:
-  updateInProgress = false;
-});
-
-      // Check the status of a resource update (if needed)
-      function checkResourceStatus(resource) {
-  ipcRenderer.invoke('check-resource-update', resource).then((status) => {
-    const updateButton = document.getElementById('updateButton_' + resource);
-    const launchButton = document.getElementById('launchButton');
-    
-    if (status === 'up-to-date') {
-      // Game is installed and updated
-      updateButton.innerText = 'Up to Date';
-      updateButton.disabled = true;
-      updateButton.classList.add('upToDate');
-      // Enable play button
-      launchButton.disabled = false;
-      launchButton.style.opacity = "";
-      window.isGameInstalled = true;
-    } else {
-      // Game is not installed (or update is available)
-      updateButton.innerText = 'Update';
-      updateButton.disabled = false;
-      updateButton.classList.remove('upToDate');
-      // Disable play button to prevent launching an uninstalled game
-      launchButton.disabled = true;
-      launchButton.style.opacity = "0.5";
-      window.isGameInstalled = false;
-    }
-  });
-}
-
-// Check for each resource on startup
-const resourcesToCheck = ['mythbound-windows'];
-resourcesToCheck.forEach(resource => {
-  checkResourceStatus(resource);
-});
-
-      // Restart modal button (if using a custom modal for launcher updates)
-      document.addEventListener('DOMContentLoaded', () => {
-        const restartButton = document.getElementById('restartNowButton');
-        if (restartButton) {
-          restartButton.addEventListener('click', () => {
-            ipcRenderer.send('restart_app');
-          });
-        } else {
-          console.error('restartNowButton not found');
-        }
+      // Listen for update-downloaded event (for launcher updates)
+      ipcRenderer.on('update-downloaded', (event, info) => {
+        console.log('Launcher update downloaded:', info);
+        // Show your custom modal if you want; otherwise, your main process might auto-quit.
+        document.getElementById('updateModal').style.display = 'block';
+        const launchButton = document.getElementById('launchButton');
+        launchButton.innerText = 'Restart';
+        launchButton.disabled = false;
+        setUpdateStatus("Update downloaded. Click 'Restart' to apply the update.");
+        document.getElementById("progressBarContainer").style.display = "block";
       });
-	  
-	  document.addEventListener('click', function (event) {
-  const menuPanel = document.getElementById('menuPanel');
-  const menuButton = document.querySelector('.menu-btn');
-  
-  // Check if the click target is NOT inside the menuPanel or the menuButton
-  if (!menuPanel.contains(event.target) && !menuButton.contains(event.target)) {
-    // Hide the menu panel (for example, by setting display to "none" or removing an "active" class)
-    menuPanel.style.display = 'none';
-  }
-});
-document.querySelectorAll('a').forEach(anchor => {
-  // Only intercept external links (starting with http)
-  if (anchor.getAttribute('href') && anchor.getAttribute('href').startsWith('http')) {
-    anchor.addEventListener('click', (e) => {
-      e.preventDefault();
-      openExternalLink(anchor.getAttribute('href'));
     });
-  }
-});
+
+    // Helper functions for updating the UI
+    function setUpdateStatus(status) {
+      const statusElem = document.getElementById("updateStatus");
+      if (statusElem) {
+        statusElem.innerText = status;
+      }
+    }
+    function setProgress(percent) {
+      const progressElem = document.getElementById("progressBar");
+      if (progressElem) {
+        progressElem.style.width = percent + '%';
+        progressElem.innerText = percent + '%';
+      }
+    }
+    function handleLaunchButtonClick() {
+      if (!window.isGameInstalled) {
+        // Optionally display a message to the user
+        alert('The game is not installed. Please click Update first.');
+        return;
+      }
+      const btn = document.getElementById('launchButton');
+      if (btn.innerText === 'Restart') {
+        ipcRenderer.send('restart_app');
+      } else {
+        ipcRenderer.send('launch_game');
+      }
+    }
+
+    // Resource update functions
+    function openResourceFolder(resource) {
+      ipcRenderer.send('open-resource-folder', resource);
+    }
+    let updateInProgress = false;
+
+    function handleUpdate(resource) {
+      if (updateInProgress) return; // Prevent re-triggering if already updating
+      updateInProgress = true;
+
+      const launchButton = document.getElementById("launchButton");
+      const updateButton = document.getElementById("updateButton_" + resource);
+      const progressContainer = document.getElementById("progressContainer_" + resource);
+
+      if (launchButton) {
+        launchButton.disabled = true;
+        launchButton.style.opacity = "0.5";
+      }
+
+      if (updateButton) {
+        updateButton.innerText = "Updating...";
+        updateButton.disabled = true;
+        updateButton.classList.remove("upToDate");
+      }
+
+      if (progressContainer) {
+        progressContainer.style.display = "inline-flex";
+        const progressBar = document.getElementById("progressBar_" + resource);
+        if (progressBar) progressBar.style.width = "0%";
+      }
+
+      // Simulate delay before triggering update (or send directly)
+      setTimeout(() => {
+        ipcRenderer.send('update-resource', resource);
+      }, 5000);
+    }
+
+    // Optional: launcher update handler
+    function handleLauncherUpdate() {
+      ipcRenderer.send('restart_app');
+    }
+
+    // Listen for download-progress messages for resource updates
+    ipcRenderer.on('download-progress', (event, progressMessage) => {
+      console.log("Download progress (resource):", progressMessage);
+      // Format: "Downloaded 50%"
+      const matches = progressMessage.match(/Downloaded (\d+)%/);
+      if (matches) {
+        const percent = matches[1];
+        const progressBars = document.querySelectorAll(".progress-bar");
+        progressBars.forEach(bar => {
+          bar.style.width = percent + "%";
+        });
+      }
+    });
+
+    ipcRenderer.on('game-started', () => {
+      // Disable the Update button while the game is running.
+      const updateButton = document.getElementById("updateButton_mythbound-windows");
+      if (updateButton) {
+        updateButton.disabled = true;
+        updateButton.style.opacity = "0.5";
+      }
+    });
+
+    ipcRenderer.on('game-stopped', () => {
+      const launchButton = document.getElementById("launchButton");
+      if (launchButton) {
+        launchButton.disabled = false;
+        launchButton.style.opacity = "";
+      }
+
+      const updateButton = document.getElementById("updateButton_mythbound-windows");
+      if (updateButton) {
+        // If no update is needed, ensure the button remains in the "up-to-date" state.
+        updateButton.disabled = true;
+        updateButton.classList.add("upToDate");
+        updateButton.innerText = "Up to Date";
+      }
+
+      const progressContainer = document.getElementById("progressContainer_mythbound-windows");
+      if (progressContainer) {
+        progressContainer.style.display = "none";
+      }
+
+      // Optionally, reset your flag here if needed:
+      updateInProgress = false;
+    });
+
+    // Check the status of a resource update (if needed)
+    function checkResourceStatus(resource) {
+      ipcRenderer.invoke('check-resource-update', resource).then((status) => {
+        const updateButton = document.getElementById('updateButton_' + resource);
+        const launchButton = document.getElementById('launchButton');
+
+        if (status === 'up-to-date') {
+          // Game is installed and updated
+          updateButton.innerText = 'Up to Date';
+          updateButton.disabled = true;
+          updateButton.classList.add('upToDate');
+          // Enable play button
+          launchButton.disabled = false;
+          launchButton.style.opacity = "";
+          window.isGameInstalled = true;
+        } else {
+          // Game is not installed (or update is available)
+          updateButton.innerText = 'Update';
+          updateButton.disabled = false;
+          updateButton.classList.remove('upToDate');
+          // Disable play button to prevent launching an uninstalled game
+          launchButton.disabled = true;
+          launchButton.style.opacity = "0.5";
+          window.isGameInstalled = false;
+        }
+      });
+    }
+
+    // Check for each resource on startup
+    const resourcesToCheck = ['mythbound-windows'];
+    resourcesToCheck.forEach(resource => {
+      checkResourceStatus(resource);
+    });
+
+    // Restart modal button (if using a custom modal for launcher updates)
+    document.addEventListener('DOMContentLoaded', () => {
+      const restartButton = document.getElementById('restartNowButton');
+      if (restartButton) {
+        restartButton.addEventListener('click', () => {
+          ipcRenderer.send('restart_app');
+        });
+      } else {
+        console.error('restartNowButton not found');
+      }
+    });
+
+    document.addEventListener('click', function (event) {
+      const menuPanel = document.getElementById('menuPanel');
+      const menuButton = document.querySelector('.menu-btn');
+
+      // Check if the click target is NOT inside the menuPanel or the menuButton
+      if (!menuPanel.contains(event.target) && !menuButton.contains(event.target)) {
+        // Hide the menu panel (for example, by setting display to "none" or removing an "active" class)
+        menuPanel.style.display = 'none';
+      }
+    });
+    document.querySelectorAll('a').forEach(anchor => {
+      // Only intercept external links (starting with http)
+      if (anchor.getAttribute('href') && anchor.getAttribute('href').startsWith('http')) {
+        anchor.addEventListener('click', (e) => {
+          e.preventDefault();
+          openExternalLink(anchor.getAttribute('href'));
+        });
+      }
+    });
 
 
-    </script>
-	<script src="./resources/data/js/aos.js"></script>
-    <script src="./resources/data/js/script.js"></script>
-  </body>
+  </script>
+  <script src="./resources/data/js/aos.js"></script>
+  <script src="./resources/data/js/script.js"></script>
+</body>
+
 </html>
