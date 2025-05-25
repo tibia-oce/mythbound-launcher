@@ -43,13 +43,13 @@ jobs:
           # Create artifacts directory
           New-Item -ItemType Directory -Path artifacts/windows -Force
 
-          # Copy setup installer (NSIS)
+          # Copy setup installer (NSIS) - Primary for auto-updates
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
 
-          # Copy portable executable (exclude Setup)
+          # Copy portable executable (exclude Setup) - For manual distribution
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher *.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue -Exclude "*Setup*"
 
-          # Zip only the contents of win-unpacked
+          # Zip only the contents of win-unpacked - For backup/manual distribution
           $source = "mythbound-launcher/dist/win-unpacked/*"
           $zip    = "artifacts/mythbound-launcher-windows.zip"
           if (Test-Path $zip) { Remove-Item $zip }
@@ -225,11 +225,13 @@ jobs:
           # Copy and rename Windows files
           cp artifacts/windows/mythbound-launcher-windows.zip artifacts/release/
 
-          # Handle setup installer
+          # Handle setup installer - PRIMARY FOR AUTO-UPDATES
           if ls artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe 1> /dev/null 2>&1; then
             cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe
+            echo "✅ Setup installer found for auto-updates"
           else
-            echo "WARNING: No Windows setup installer found"
+            echo "❌ ERROR: No Windows setup installer found - auto-updates will not work!"
+            exit 1
           fi
 
           # Handle portable executable - try different patterns
@@ -314,21 +316,21 @@ jobs:
         env:
           VERSION: ${{ steps.release_info.outputs.version }}
         run: |
-          # Check if required files exist
-          if [ ! -f "mythbound-launcher-windows.zip" ]; then
-            echo "ERROR: mythbound-launcher-windows.zip  not found!"
+          # Point to NSIS setup installer for auto-updates
+          if [ ! -f "mythbound-launcher-setup.exe" ]; then
+            echo "ERROR: mythbound-launcher-setup.exe not found!"
             exit 1
           fi
 
-          # Generate latest.yml for Windows
+          # Generate latest.yml for Windows - Points to NSIS installer
           cat > latest.yml << EOF
           version: $VERSION
           files:
-            - url: mythbound-launcher-windows.zip 
-              sha512: $(sha512sum mythbound-launcher-windows.zip | cut -d' ' -f1)
-              size: $(stat -c%s mythbound-launcher-windows.zip )
-          path: mythbound-launcher-windows.zip 
-          sha512: $(sha512sum mythbound-launcher-windows.zip | cut -d' ' -f1)
+            - url: mythbound-launcher-setup.exe
+              sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
+              size: $(stat -c%s mythbound-launcher-setup.exe)
+          path: mythbound-launcher-setup.exe
+          sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
           releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
           EOF
 
@@ -350,7 +352,7 @@ jobs:
 
           echo "Generated manifests:"
           if [ -f "latest.yml" ]; then
-            echo "=== Windows manifest ==="
+            echo "=== Windows manifest (NSIS) ==="
             cat latest.yml
           fi
           if [ -f "latest-linux.yml" ]; then
@@ -392,16 +394,20 @@ jobs:
             ### Downloads
 
             **Windows:**
-            - [Setup Installer](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-setup.exe) (Recommended)
-            - [Portable Version](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-portable.exe)
+            - [Setup Installer](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-setup.exe) (Recommended - Auto-Updates)
+            - [Portable Version](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher-portable.exe) (Manual Updates)
 
             **Linux:**
             - [AppImage](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.AppImage) (Recommended)
             - [Debian Package](https://github.com/tibia-oce/mythbound-launcher-public/releases/download/${{ steps.release_info.outputs.tag_name }}/mythbound-launcher.deb)
 
             ### Installation
-            - **Windows:** Download and run the setup installer
+            - **Windows:** Download and run the setup installer for automatic updates
             - **Linux:** Download AppImage, make executable (`chmod +x`), and run
+
+            ### Auto-Updates
+            - **Installed users** (setup.exe): Get automatic silent updates
+            - **Portable users**: Manual updates required - download new versions
 
             For support, visit our [Discord](https://discord.gg/TT2ebFwEyE).
           files: |
