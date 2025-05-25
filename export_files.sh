@@ -54,6 +54,13 @@ get_file_size() {
 # Build find command with exclusions - focusing on code only
 FIND_CMD='find . -type f'
 FIND_CMD="$FIND_CMD ! -path '*/.git/*'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/ISSUE_TEMPLATE/*'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/renovate/*'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/renovate.json'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/workflows/code-quality.yaml'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/workflows/code-tests.yaml'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/workflows/commit-lint.yaml'"
+FIND_CMD="$FIND_CMD ! -path '*/.github/workflows/renovate.yaml'"
 FIND_CMD="$FIND_CMD ! -path '*/.github/*'"
 FIND_CMD="$FIND_CMD ! -name '.gitignore'"
 FIND_CMD="$FIND_CMD ! -path '*/node_modules/*'"

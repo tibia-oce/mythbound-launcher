@@ -43,22 +43,20 @@ jobs:
           # Create artifacts directory
           New-Item -ItemType Directory -Path artifacts/windows -Force
 
-          # Copy setup installer (NSIS) - Primary for auto-updates
+          # Copy setup installer (NSIS)
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
 
-          # Copy portable executable (exclude Setup) - For manual distribution
+          # Copy portable executable (exclude Setup)
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher *.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue -Exclude "*Setup*"
 
-          # Zip only the contents of win-unpacked - For backup/manual distribution
+          # Copy the electron-builder generated latest.yml (if exists)
+          Copy-Item -Path "mythbound-launcher/dist/latest.yml" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
+
+          # Zip only the contents of win-unpacked (for manual distribution)
           $source = "mythbound-launcher/dist/win-unpacked/*"
           $zip    = "artifacts/mythbound-launcher-windows.zip"
           if (Test-Path $zip) { Remove-Item $zip }
           Compress-Archive -Path $source -DestinationPath $zip
-
-          # List zip entries
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          [System.IO.Compression.ZipFile]::OpenRead($zip).Entries |
-            ForEach-Object { Write-Host $_.FullName }
 
           Write-Host "Created $zip"
 
@@ -79,6 +77,13 @@ jobs:
         with:
           name: mythbound-launcher-windows-portable
           path: mythbound-launcher/dist/Mythbound Launcher *.exe
+          if-no-files-found: warn
+
+      - name: Upload electron-builder manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythbound-launcher-latest-yml
+          path: mythbound-launcher/dist/latest.yml
           if-no-files-found: warn
 
   build-linux:
@@ -190,6 +195,13 @@ jobs:
           path: artifacts/windows-portable
           continue-on-error: true
 
+      - name: Download electron-builder manifest
+        uses: actions/download-artifact@v4
+        with:
+          name: mythbound-launcher-latest-yml
+          path: artifacts/windows-manifest
+          continue-on-error: true
+
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -214,6 +226,8 @@ jobs:
           ls -la artifacts/windows-setup/ || echo "No windows setup files"
           echo "=== Windows Portable ==="
           ls -la artifacts/windows-portable/ || echo "No windows portable files"
+          echo "=== Windows Manifest ==="
+          ls -la artifacts/windows-manifest/ || echo "No windows manifest files"
           echo "=== Linux AppImage ==="
           ls -la artifacts/linux-appimage/ || echo "No linux appimage files"
 
@@ -225,21 +239,28 @@ jobs:
           # Copy and rename Windows files
           cp artifacts/windows/mythbound-launcher-windows.zip artifacts/release/
 
-          # Handle setup installer - PRIMARY FOR AUTO-UPDATES
+          # Handle setup installer
           if ls artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe 1> /dev/null 2>&1; then
             cp artifacts/windows-setup/Mythbound\ Launcher\ Setup*.exe artifacts/release/mythbound-launcher-setup.exe
-            echo "✅ Setup installer found for auto-updates"
+            echo "✅ Setup installer found"
           else
-            echo "❌ ERROR: No Windows setup installer found - auto-updates will not work!"
+            echo "❌ ERROR: No Windows setup installer found"
             exit 1
           fi
 
-          # Handle portable executable - try different patterns
+          # Handle portable executable
           if ls artifacts/windows-portable/Mythbound\ Launcher\ *.exe 1> /dev/null 2>&1; then
-            # Exclude setup files and copy the first portable exe found
             find artifacts/windows-portable/ -name "Mythbound Launcher *.exe" ! -name "*Setup*" -exec cp {} artifacts/release/mythbound-launcher-portable.exe \; -quit
           else
             echo "WARNING: No Windows portable executable found"
+          fi
+
+          # Copy electron-builder generated manifest (if exists)
+          if [ -f "artifacts/windows-manifest/latest.yml" ]; then
+            cp artifacts/windows-manifest/latest.yml artifacts/release/
+            echo "✅ Using electron-builder generated latest.yml"
+          else
+            echo "⚠️ No electron-builder manifest found, will generate manually"
           fi
 
           # Copy and rename Linux files  
@@ -304,26 +325,25 @@ jobs:
           echo "Downloaded files:"
           ls -la
 
-          echo "Looking for specific files:"
-          echo "Setup files:"
-          ls -la *setup* || echo "No setup files found"
-          echo "Portable files:"
-          ls -la *portable* || echo "No portable files found"
-          echo "All .exe files:"
-          ls -la *.exe || echo "No .exe files found"
-
-      - name: Generate electron-updater manifests
+      - name: Use existing or generate electron-updater manifest
         env:
           VERSION: ${{ steps.release_info.outputs.version }}
         run: |
-          # Point to NSIS setup installer for auto-updates
-          if [ ! -f "mythbound-launcher-setup.exe" ]; then
-            echo "ERROR: mythbound-launcher-setup.exe not found!"
-            exit 1
-          fi
+          # Check if we have electron-builder generated manifest
+          if [ -f "latest.yml" ]; then
+            echo "✅ Using electron-builder generated latest.yml"
+            cat latest.yml
+          else
+            echo "⚠️ No electron-builder manifest found, generating fallback"
+            
+            # Check if required files exist for fallback
+            if [ ! -f "mythbound-launcher-setup.exe" ]; then
+              echo "ERROR: mythbound-launcher-setup.exe not found!"
+              exit 1
+            fi
 
-          # Generate latest.yml for Windows - Points to NSIS installer
-          cat > latest.yml << EOF
+            # Generate fallback latest.yml - BUT DON'T USE THIS FOR AUTO-UPDATES
+            cat > latest.yml << EOF
           version: $VERSION
           files:
             - url: mythbound-launcher-setup.exe
@@ -333,6 +353,10 @@ jobs:
           sha512: $(sha512sum mythbound-launcher-setup.exe | cut -d' ' -f1)
           releaseDate: '$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")'
           EOF
+
+            echo "⚠️ FALLBACK manifest generated (manual updates only):"
+            cat latest.yml
+          fi
 
           # Generate latest-linux.yml for Linux (if AppImage exists)
           if [ -f "mythbound-launcher.AppImage" ]; then
@@ -348,16 +372,6 @@ jobs:
           EOF
           else
             echo "WARNING: mythbound-launcher.AppImage not found, skipping Linux manifest"
-          fi
-
-          echo "Generated manifests:"
-          if [ -f "latest.yml" ]; then
-            echo "=== Windows manifest (NSIS) ==="
-            cat latest.yml
-          fi
-          if [ -f "latest-linux.yml" ]; then
-            echo "=== Linux manifest ==="
-            cat latest-linux.yml
           fi
 
       - name: Clone public repo and copy manifests

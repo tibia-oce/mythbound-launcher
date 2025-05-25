@@ -55,6 +55,14 @@
     "extraMetadata": {
       "updateFolder": "updates"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "tibia-oce",
+        "repo": "mythbound-launcher-public",
+        "private": false
+      }
+    ],
     "linux": {
       "target": [
         {
@@ -91,9 +99,12 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Mythbound Launcher"
+      "shortcutName": "Mythbound Launcher",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "files": [
       "main.js",
