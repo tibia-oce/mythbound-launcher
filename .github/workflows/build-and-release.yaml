@@ -55,8 +55,12 @@ jobs:
           if (Test-Path $zip) { Remove-Item $zip }
           Compress-Archive -Path $source -DestinationPath $zip
 
-          Write-Host "Zip created at $zip containing:"
-          Compress-Archive -List $zip
+          # List zip entries
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::OpenRead($zip).Entries |
+            ForEach-Object { Write-Host $_.FullName }
+
+          Write-Host "Created $zip"
 
       - name: Upload Windows Full Package
         uses: actions/upload-artifact@v4
