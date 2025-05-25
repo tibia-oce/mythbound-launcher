@@ -409,7 +409,7 @@ jobs:
             mythbound-launcher-portable.exe
             mythbound-launcher.AppImage
             mythbound-launcher.deb
-           mythbound-launcher-windows.zip
+            mythbound-launcher-windows.zip
             mythbound-launcher-linux.tar.gz
             latest.yml
             latest-linux.yml
