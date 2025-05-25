@@ -1,6 +1,6 @@
 {
   "name": "mythbound-launcher",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Official launcher for Mythbound RPG.",
   "main": "main.js",
   "homepage": "https://www.mythbound.dev/",

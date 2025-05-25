@@ -30,10 +30,10 @@ jobs:
           cd mythbound-launcher
           npm ci
 
-      - name: Build & Publish Windows (nsis-web)
+      - name: Build & Publish Windows (nsis)
         run: |
           cd mythbound-launcher
-          npx electron-builder --win nsis-web --publish=always
+          npx electron-builder --win nsis --publish=always
 
   build-linux:
     name: Build & Publish Linux
