@@ -46,15 +46,17 @@ jobs:
           # Copy setup installer (NSIS)
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher Setup*.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue
 
-          # Copy portable executable (should have different naming pattern)
+          # Copy portable executable (exclude Setup)
           Copy-Item -Path "mythbound-launcher/dist/Mythbound Launcher *.exe" -Destination "artifacts/windows/" -ErrorAction SilentlyContinue -Exclude "*Setup*"
 
-          # Create full package with everything
-          Copy-Item -Path "mythbound-launcher/dist/win-unpacked" -Destination "artifacts/windows/" -Recurse -ErrorAction SilentlyContinue
-          Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/mythbound-launcher-windows.zip"
+          # Zip only the contents of win-unpacked
+          $source = "mythbound-launcher/dist/win-unpacked/*"
+          $zip    = "artifacts/mythbound-launcher-windows.zip"
+          if (Test-Path $zip) { Remove-Item $zip }
+          Compress-Archive -Path $source -DestinationPath $zip
 
-          echo "Contents of artifacts/windows:"
-          Get-ChildItem -Path "artifacts/windows" | Format-Table Name, Length
+          Write-Host "Zip created at $zip containing:"
+          Compress-Archive -List $zip
 
       - name: Upload Windows Full Package
         uses: actions/upload-artifact@v4
@@ -351,6 +353,29 @@ jobs:
             echo "=== Linux manifest ==="
             cat latest-linux.yml
           fi
+
+      - name: Clone public repo and copy manifests
+        env:
+          GH_TOKEN: ${{ secrets.GHCR_TOKEN_PRIVATE }}
+        run: |
+          git clone --depth 1 --branch main https://x-access-token:${GH_TOKEN}@github.com/tibia-oce/mythbound-launcher-public.git mythbound-launcher-public
+
+          if [ -f latest.yml ]; then
+            cp latest.yml mythbound-launcher-public/latest.yml
+          fi
+
+          if [ -f latest-linux.yml ]; then
+            cp latest-linux.yml mythbound-launcher-public/latest-linux.yml
+          fi
+
+      - name: Commit both manifests to public repo
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: mythbound-launcher-public
+          commit_message: "chore: update latest manifest(s)"
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          branch: main
 
       - name: Create release in public repository
         uses: softprops/action-gh-release@v2
