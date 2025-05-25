@@ -153,13 +153,21 @@ app.on("ready", () => {
   autoUpdater.baseCachePath = updatesDir;
   console.log("Custom updates directory set to:", updatesDir);
 
-  // Configure launcher auto-updater with CORRECT repository
+  // Configure launcher auto-updater for NSIS updates
   autoUpdater.setFeedURL({
     provider: "github",
     owner: "tibia-oce",
     repo: "mythbound-launcher-public", // ✅ Correct launcher repo
     private: false,
   });
+
+  // Set auto-updater options for NSIS
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  // Add logging for debugging
+  console.log("Launcher version:", app.getVersion());
+  console.log("Auto-updater configured for NSIS silent updates");
 
   // Check for launcher updates
   autoUpdater.checkForUpdatesAndNotify();
@@ -174,7 +182,7 @@ app.on("activate", () => {
 });
 
 // -----------------------------------------------------------------------------
-// Download and Update Client
+// Download and Update Client (unchanged)
 // -----------------------------------------------------------------------------
 function downloadAndUpdateResource(fileUrl, targetDir, ipcEvent, callback) {
   console.log("Starting download from:", fileUrl);
@@ -261,7 +269,7 @@ function downloadAndUpdateResource(fileUrl, targetDir, ipcEvent, callback) {
 }
 
 // -----------------------------------------------------------------------------
-// Update-resource (Client Updates)
+// Update-resource (Client Updates) - unchanged
 // -----------------------------------------------------------------------------
 ipcMain.on("update-resource", (event, resource) => {
   console.log(`Received IPC request to update resource: ${resource}`);
@@ -368,7 +376,7 @@ ipcMain.on("update-resource", (event, resource) => {
 });
 
 // -----------------------------------------------------------------------------
-// Check-resource-update
+// Check-resource-update (unchanged)
 // -----------------------------------------------------------------------------
 ipcMain.handle("check-resource-update", async (event, resource) => {
   const manifestUrl =
@@ -414,7 +422,7 @@ ipcMain.handle("check-resource-update", async (event, resource) => {
 });
 
 // -----------------------------------------------------------------------------
-// Open-resource-folder
+// Open-resource-folder (unchanged)
 // -----------------------------------------------------------------------------
 ipcMain.on("open-resource-folder", (event, resource) => {
   const folderPath = path.join(persistentBaseDir, resource);
@@ -434,7 +442,7 @@ ipcMain.on("open-resource-folder", (event, resource) => {
 });
 
 // -----------------------------------------------------------------------------
-// Auto-updater events for launcher updates
+// Auto-updater events for launcher NSIS updates
 // -----------------------------------------------------------------------------
 autoUpdater.on("checking-for-update", () => {
   console.log("Checking for launcher updates...");
@@ -448,6 +456,7 @@ autoUpdater.on("checking-for-update", () => {
 
 autoUpdater.on("update-available", (info) => {
   console.log("Launcher update available:", info);
+  console.log("Will download NSIS installer for silent update");
   if (mainWindow) {
     mainWindow.webContents.send(
       "update-status",
@@ -494,13 +503,21 @@ autoUpdater.on("download-progress", (progressObj) => {
 
 autoUpdater.on("update-downloaded", (info) => {
   console.log("Launcher update downloaded:", info);
+  console.log("NSIS installer ready for silent installation");
+  console.log("Current version:", app.getVersion());
+  console.log("Update version:", info.version);
+
   if (mainWindow) {
     mainWindow.webContents.send("update-downloaded", info);
   }
-  // Auto-restart after a short delay
-  setTimeout(() => {
-    autoUpdater.quitAndInstall();
-  }, 3000);
+
+  // For NSIS installers, give user choice instead of auto-restart
+  if (mainWindow) {
+    mainWindow.webContents.send(
+      "update-status",
+      "Update ready! Click 'Restart Launcher' to apply the update."
+    );
+  }
 });
 
 // -----------------------------------------------------------------------------
@@ -527,7 +544,9 @@ ipcMain.handle("get-version", () => {
 });
 
 ipcMain.on("restart_app", () => {
-  console.log("Restarting application for update.");
+  console.log("Restarting application for NSIS update.");
+  console.log("This will run the NSIS installer silently in the background");
+  // This will run the downloaded NSIS installer silently
   autoUpdater.quitAndInstall();
 });
 
